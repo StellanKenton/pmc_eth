@@ -57,6 +57,26 @@ TaskHandle_t START_Task_Handler;
 //������
 void start_task(void *pvParameters);
 
+//NetWork����
+//�������ȼ�
+#define NETWORK_TASK_PRIO		6
+//�����ջ��С	
+#define NETWORK_STK_SIZE 		1024  
+//������
+TaskHandle_t NetWork_Task_Handler;
+//������
+void network_task(void *pvParameters);
+
+//EthWork����
+//�������ȼ�
+#define ETHWORK_TASK_PRIO		7
+//�����ջ��С	
+#define ETHWORK_STK_SIZE 		1024  
+//������
+TaskHandle_t EthWork_Task_Handler;
+//������
+void ethwork_task(void *pvParameters);
+
 //TCP Server����
 //�������ȼ�
 #define TCP_SERVER_TASK_PRIO		6
@@ -118,21 +138,24 @@ int main(void)
 	my_mem_init(SRAMEX);								//��ʼ���ⲿ�ڴ��
 	my_mem_init(SRAMCCM);	  							//��ʼ��CCM�ڴ��
 	
-	POINT_COLOR = RED; 		
-  
-	while(lwip_comm_init()) //lwip��ʼ��
-	{
-        printf("LWIP initialization failed! Retrying...\r\n");
-		delay_ms(1200);
-	}
-	printf("LWIP initialization successful!\r\n");
-
-	xTaskCreate((TaskFunction_t )start_task,            //������
-			  (const char*    )"start_task",          	//��������
-			  (uint16_t       )START_STK_SIZE,        	//�����ջ��С
+	POINT_COLOR = RED;
+	
+	//����NetWork����
+	xTaskCreate((TaskFunction_t )network_task,        	//������
+			  (const char*    )"network_task",        	//��������
+			  (uint16_t       )NETWORK_STK_SIZE,      	//�����ջ��С
 			  (void*          )NULL,                 	//���ݸ��������Ĳ���
-			  (UBaseType_t    )START_TASK_PRIO,       	//�������ȼ�
-			  (TaskHandle_t*  )&START_Task_Handler);  	//������              
+			  (UBaseType_t    )NETWORK_TASK_PRIO,    	//�������ȼ�
+			  (TaskHandle_t*  )&NetWork_Task_Handler); 	//������
+	
+	//����EthWork����
+	xTaskCreate((TaskFunction_t )ethwork_task,        	//������
+			  (const char*    )"ethwork_task",        	//��������
+			  (uint16_t       )ETHWORK_STK_SIZE,      	//�����ջ��С
+			  (void*          )NULL,                 	//���ݸ��������Ĳ���
+			  (UBaseType_t    )ETHWORK_TASK_PRIO,    	//�������ȼ�
+			  (TaskHandle_t*  )&EthWork_Task_Handler); 	//������
+	
 	vTaskStartScheduler();          					//�����������
 }
 
@@ -219,6 +242,26 @@ void led_task(void *pvParameters)
 	{
 		LED0 = !LED0;
 		vTaskDelay(500);     							 //��ʱ500ms
+ 	}
+}
+
+//NetWork����
+void network_task(void *pvParameters)
+{
+	while(1)
+	{
+		printf("NetWork task is running...\r\n");
+		vTaskDelay(1000);     							 //��ʱ1000ms
+ 	}
+}
+
+//EthWork����
+void ethwork_task(void *pvParameters)
+{
+	while(1)
+	{
+		printf("EthWork task is running...\r\n");
+		vTaskDelay(1500);     							 //��ʱ1500ms
  	}
 }
 
