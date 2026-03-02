@@ -4,38 +4,38 @@
 #include "delay.h"
 #include "malloc.h" 
 //////////////////////////////////////////////////////////////////////////////////	 
-//±¾³ÌÐòÖ»¹©Ñ§Ï°Ê¹ÓÃ£¬Î´¾­×÷ÕßÐí¿É£¬²»µÃÓÃÓÚÆäËüÈÎºÎÓÃÍ¾
-//ALIENTEK STM32F407¿ª·¢°å
-//LAN8720 Çý¶¯´úÂë	   
-//ÕýµãÔ­×Ó@ALIENTEK
-//¼¼ÊõÂÛÌ³:www.openedv.com
-//´´½¨ÈÕÆÚ:2014/8/15
-//°æ±¾£ºV1.0
-//°æÈ¨ËùÓÐ£¬µÁ°æ±Ø¾¿¡£
-//Copyright(C) ¹ãÖÝÊÐÐÇÒíµç×Ó¿Æ¼¼ÓÐÏÞ¹«Ë¾ 2014-2024
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Ñ§Ï°Ê¹ï¿½Ã£ï¿½Î´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½Í¾
+//ALIENTEK STM32F407ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//LAN8720 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	   
+//ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½@ALIENTEK
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì³:www.openedv.com
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:2014/8/15
+//ï¿½æ±¾ï¿½ï¿½V1.0
+//ï¿½ï¿½È¨ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½
+//Copyright(C) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Æ¼ï¿½ï¿½ï¿½ï¿½Þ¹ï¿½Ë¾ 2014-2024
 //All rights reserved									  
 ////////////////////////////////////////////////////////////////////////////////// 
 
-ETH_DMADESCTypeDef *DMARxDscrTab;	//ÒÔÌ«ÍøDMA½ÓÊÕÃèÊö·ûÊý¾Ý½á¹¹ÌåÖ¸Õë
-ETH_DMADESCTypeDef *DMATxDscrTab;	//ÒÔÌ«ÍøDMA·¢ËÍÃèÊö·ûÊý¾Ý½á¹¹ÌåÖ¸Õë 
-uint8_t *Rx_Buff; 					//ÒÔÌ«Íøµ×²ãÇý¶¯½ÓÊÕbuffersÖ¸Õë 
-uint8_t *Tx_Buff; 					//ÒÔÌ«Íøµ×²ãÇý¶¯·¢ËÍbuffersÖ¸Õë
+ETH_DMADESCTypeDef *DMARxDscrTab;	//ï¿½ï¿½Ì«ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½
+ETH_DMADESCTypeDef *DMATxDscrTab;	//ï¿½ï¿½Ì«ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½ 
+uint8_t *Rx_Buff; 					//ï¿½ï¿½Ì«ï¿½ï¿½ï¿½×²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½buffersÖ¸ï¿½ï¿½ 
+uint8_t *Tx_Buff; 					//ï¿½ï¿½Ì«ï¿½ï¿½ï¿½×²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½buffersÖ¸ï¿½ï¿½
   
 static void ETHERNET_NVICConfiguration(void);
-//LAN8720³õÊ¼»¯
-//·µ»ØÖµ:0,³É¹¦;
-//    ÆäËû,Ê§°Ü
+//LAN8720ï¿½ï¿½Ê¼ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:0,ï¿½É¹ï¿½;
+//    ï¿½ï¿½ï¿½ï¿½,Ê§ï¿½ï¿½
 u8 LAN8720_Init(void)
 {
 	u8 rval=0;
 	GPIO_InitTypeDef GPIO_InitStructure;
   
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA|RCC_AHB1Periph_GPIOC|RCC_AHB1Periph_GPIOB|RCC_AHB1Periph_GPIOD|RCC_AHB1Periph_GPIOG, ENABLE);//Ê¹ÄÜGPIOÊ±ÖÓ RMII½Ó¿Ú
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);   //Ê¹ÄÜSYSCFGÊ±ÖÓ
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA|RCC_AHB1Periph_GPIOC|RCC_AHB1Periph_GPIOB|RCC_AHB1Periph_GPIOD|RCC_AHB1Periph_GPIOG, ENABLE);//Ê¹ï¿½ï¿½GPIOÊ±ï¿½ï¿½ RMIIï¿½Ó¿ï¿½
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);   //Ê¹ï¿½ï¿½SYSCFGÊ±ï¿½ï¿½
   
-	SYSCFG_ETH_MediaInterfaceConfig(SYSCFG_ETH_MediaInterface_RMII); //MACºÍPHYÖ®¼äÊ¹ÓÃRMII½Ó¿Ú
+	SYSCFG_ETH_MediaInterfaceConfig(SYSCFG_ETH_MediaInterface_RMII); //MACï¿½ï¿½PHYÖ®ï¿½ï¿½Ê¹ï¿½ï¿½RMIIï¿½Ó¿ï¿½
 
-	/*ÍøÂçÒý½ÅÉèÖÃ RMII½Ó¿Ú
+	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RMIIï¿½Ó¿ï¿½
 	  ETH_MDIO -------------------------> PA2
 	  ETH_MDC --------------------------> PC1
 	  ETH_RMII_REF_CLK------------------> PA1
@@ -47,7 +47,7 @@ u8 LAN8720_Init(void)
 	  ETH_RMII_TXD1 --------------------> PG14
 	  ETH_RESET-------------------------> PD3*/
 					
-	  //ÅäÖÃPA1 PA2 PA7
+	  //ï¿½ï¿½ï¿½ï¿½PA1 PA2 PA7
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_7;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
@@ -55,18 +55,18 @@ u8 LAN8720_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;  
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 	
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_ETH); //Òý½Å¸´ÓÃµ½ÍøÂç½Ó¿ÚÉÏ
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_ETH); //ï¿½ï¿½ï¿½Å¸ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½ï¿½
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_ETH);
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_ETH);
 
-	//ÅäÖÃPC1,PC4 and PC5
+	//ï¿½ï¿½ï¿½ï¿½PC1,PC4 and PC5
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_4 | GPIO_Pin_5;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	GPIO_PinAFConfig(GPIOC, GPIO_PinSource1, GPIO_AF_ETH); //Òý½Å¸´ÓÃµ½ÍøÂç½Ó¿ÚÉÏ
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource1, GPIO_AF_ETH); //ï¿½ï¿½ï¿½Å¸ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½ï¿½
 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource4, GPIO_AF_ETH);
 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource5, GPIO_AF_ETH);
                                 
-	//ÅäÖÃPG11, PG14 and PG13 
+	//ï¿½ï¿½ï¿½ï¿½PG11, PG14 and PG13 
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_11;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_ETH);
@@ -76,196 +76,198 @@ u8 LAN8720_Init(void)
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_ETH);
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_ETH);
 	
-	//ÅäÖÃPD3ÎªÍÆÍêÊä³ö
+	//ï¿½ï¿½ï¿½ï¿½PD3Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;	//ÍÆÍêÊä³ö
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;  
 	GPIO_Init(GPIOD, &GPIO_InitStructure);
 	
-	LAN8720_RST=0;					//Ó²¼þ¸´Î»LAN8720
+	LAN8720_RST=0;					//Ó²ï¿½ï¿½ï¿½ï¿½Î»LAN8720
 	delay_ms(50);	
-	LAN8720_RST=1;				 	//¸´Î»½áÊø 
-	ETHERNET_NVICConfiguration();	//ÉèÖÃÖÐ¶ÏÓÅÏÈ¼¶
-	rval=ETH_MACDMA_Config();		//ÅäÖÃMAC¼°DMA
-	return !rval;					//ETHµÄ¹æÔòÎª:0,Ê§°Ü;1,³É¹¦;ËùÒÔÒªÈ¡·´Ò»ÏÂ 
+	LAN8720_RST=1;				 	//ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ 
+	ETHERNET_NVICConfiguration();	//ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½È¼ï¿½
+	rval=ETH_MACDMA_Config();		//ï¿½ï¿½ï¿½ï¿½MACï¿½ï¿½DMA
+	return !rval;					//ETHï¿½Ä¹ï¿½ï¿½ï¿½Îª:0,Ê§ï¿½ï¿½;1,ï¿½É¹ï¿½;ï¿½ï¿½ï¿½ï¿½ÒªÈ¡ï¿½ï¿½Ò»ï¿½ï¿½ 
 }
 
-//ÒÔÌ«ÍøÖÐ¶Ï·Ö×éÅäÖÃ
+//ï¿½ï¿½Ì«ï¿½ï¿½ï¿½Ð¶Ï·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void ETHERNET_NVICConfiguration(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
 	
-	NVIC_InitStructure.NVIC_IRQChannel = ETH_IRQn;  //ÒÔÌ«ÍøÖÐ¶Ï
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0X00;  //ÖÐ¶Ï¼Ä´æÆ÷×é2×î¸ßÓÅÏÈ¼¶
+	NVIC_InitStructure.NVIC_IRQChannel = ETH_IRQn;  //ï¿½ï¿½Ì«ï¿½ï¿½ï¿½Ð¶ï¿½
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0X00;  //ï¿½Ð¶Ï¼Ä´ï¿½ï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¼ï¿½
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0X00;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 }
 
 
-//µÃµ½8720µÄËÙ¶ÈÄ£Ê½
-//·µ»ØÖµ:
-//001:10M°ëË«¹¤
-//101:10MÈ«Ë«¹¤
-//010:100M°ëË«¹¤
-//110:100MÈ«Ë«¹¤
-//ÆäËû:´íÎó.
+//ï¿½Ãµï¿½8720ï¿½ï¿½ï¿½Ù¶ï¿½Ä£Ê½
+//ï¿½ï¿½ï¿½ï¿½Öµ:
+//001:10Mï¿½ï¿½Ë«ï¿½ï¿½
+//101:10MÈ«Ë«ï¿½ï¿½
+//010:100Mï¿½ï¿½Ë«ï¿½ï¿½
+//110:100MÈ«Ë«ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½:ï¿½ï¿½ï¿½ï¿½.
 u8 LAN8720_Get_Speed(void)
 {
 	u8 speed;
-	speed=((ETH_ReadPHYRegister(0x00,31)&0x1C)>>2); //´ÓLAN8720µÄ31ºÅ¼Ä´æÆ÷ÖÐ¶ÁÈ¡ÍøÂçËÙ¶ÈºÍË«¹¤Ä£Ê½
+	speed=((ETH_ReadPHYRegister(0x00,31)&0x1C)>>2); //ï¿½ï¿½LAN8720ï¿½ï¿½31ï¿½Å¼Ä´ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶Èºï¿½Ë«ï¿½ï¿½Ä£Ê½
 	return speed;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////
-//ÒÔÏÂ²¿·ÖÎªSTM32F407Íø¿¨ÅäÖÃ/½Ó¿Úº¯Êý.
+//ï¿½ï¿½ï¿½Â²ï¿½ï¿½ï¿½ÎªSTM32F407ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½Ó¿Úºï¿½ï¿½ï¿½.
 
-//³õÊ¼»¯ETH MAC²ã¼°DMAÅäÖÃ
-//·µ»ØÖµ:ETH_ERROR,·¢ËÍÊ§°Ü(0)
-//		ETH_SUCCESS,·¢ËÍ³É¹¦(1)
+//ï¿½ï¿½Ê¼ï¿½ï¿½ETH MACï¿½ã¼°DMAï¿½ï¿½ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:ETH_ERROR,ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½(0)
+//		ETH_SUCCESS,ï¿½ï¿½ï¿½Í³É¹ï¿½(1)
 u8 ETH_MACDMA_Config(void)
 {
 	u8 rval;
 	ETH_InitTypeDef ETH_InitStructure; 
 	
-	//Ê¹ÄÜÒÔÌ«ÍøMACÒÔ¼°MAC½ÓÊÕºÍ·¢ËÍÊ±ÖÓ
+	//Ê¹ï¿½ï¿½ï¿½ï¿½Ì«ï¿½ï¿½MACï¿½Ô¼ï¿½MACï¿½ï¿½ï¿½ÕºÍ·ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_ETH_MAC | RCC_AHB1Periph_ETH_MAC_Tx |RCC_AHB1Periph_ETH_MAC_Rx, ENABLE);
                         
-	ETH_DeInit();  								//AHB×ÜÏßÖØÆôÒÔÌ«Íø
-	ETH_SoftwareReset();  						//Èí¼þÖØÆôÍøÂç
-	while (ETH_GetSoftwareResetStatus() == SET);//µÈ´ýÈí¼þÖØÆôÍøÂçÍê³É 
-	ETH_StructInit(&ETH_InitStructure); 	 	//³õÊ¼»¯ÍøÂçÎªÄ¬ÈÏÖµ  
+	ETH_DeInit();  								//AHBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì«ï¿½ï¿½
+	ETH_SoftwareReset();  						//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	while (ETH_GetSoftwareResetStatus() == SET);//ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+	ETH_StructInit(&ETH_InitStructure); 	 	//ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÄ¬ï¿½ï¿½Öµ  
 
-	///ÍøÂçMAC²ÎÊýÉèÖÃ 
-	ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Enable;   			//¿ªÆôÍøÂç×ÔÊÊÓ¦¹¦ÄÜ
-	ETH_InitStructure.ETH_LoopbackMode = ETH_LoopbackMode_Disable;					//¹Ø±Õ·´À¡
-	ETH_InitStructure.ETH_RetryTransmission = ETH_RetryTransmission_Disable; 		//¹Ø±ÕÖØ´«¹¦ÄÜ
-	ETH_InitStructure.ETH_AutomaticPadCRCStrip = ETH_AutomaticPadCRCStrip_Disable; 	//¹Ø±Õ×Ô¶¯È¥³ýPDA/CRC¹¦ÄÜ 
-	ETH_InitStructure.ETH_ReceiveAll = ETH_ReceiveAll_Disable;						//¹Ø±Õ½ÓÊÕËùÓÐµÄÖ¡
-	ETH_InitStructure.ETH_BroadcastFramesReception = ETH_BroadcastFramesReception_Enable;//ÔÊÐí½ÓÊÕËùÓÐ¹ã²¥Ö¡
-	ETH_InitStructure.ETH_PromiscuousMode = ETH_PromiscuousMode_Disable;			//¹Ø±Õ»ìºÏÄ£Ê½µÄµØÖ·¹ýÂË  
-	ETH_InitStructure.ETH_MulticastFramesFilter = ETH_MulticastFramesFilter_Perfect;//¶ÔÓÚ×é²¥µØÖ·Ê¹ÓÃÍêÃÀµØÖ·¹ýÂË   
-	ETH_InitStructure.ETH_UnicastFramesFilter = ETH_UnicastFramesFilter_Perfect;	//¶Ôµ¥²¥µØÖ·Ê¹ÓÃÍêÃÀµØÖ·¹ýÂË 
+	///ï¿½ï¿½ï¿½ï¿½MACï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+	ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Disable;  			//ï¿½Ø±Õ¶ï¿½Ð­ï¿½Ì£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	ETH_InitStructure.ETH_Speed = ETH_Speed_100M;                          			//ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½ï¿½Îª10M
+	ETH_InitStructure.ETH_Mode = ETH_Mode_FullDuplex;                     			//È«Ë«ï¿½ï¿½Ä£Ê½
+	ETH_InitStructure.ETH_LoopbackMode = ETH_LoopbackMode_Disable;					//ï¿½Ø±Õ·ï¿½ï¿½ï¿½
+	ETH_InitStructure.ETH_RetryTransmission = ETH_RetryTransmission_Disable; 		//ï¿½Ø±ï¿½ï¿½Ø´ï¿½ï¿½ï¿½ï¿½ï¿½
+	ETH_InitStructure.ETH_AutomaticPadCRCStrip = ETH_AutomaticPadCRCStrip_Disable; 	//ï¿½Ø±ï¿½ï¿½Ô¶ï¿½È¥ï¿½ï¿½PDA/CRCï¿½ï¿½ï¿½ï¿½ 
+	ETH_InitStructure.ETH_ReceiveAll = ETH_ReceiveAll_Disable;						//ï¿½Ø±Õ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ö¡
+	ETH_InitStructure.ETH_BroadcastFramesReception = ETH_BroadcastFramesReception_Enable;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¹ã²¥Ö¡
+	ETH_InitStructure.ETH_PromiscuousMode = ETH_PromiscuousMode_Disable;			//ï¿½Ø±Õ»ï¿½ï¿½Ä£Ê½ï¿½Äµï¿½Ö·ï¿½ï¿½ï¿½ï¿½  
+	ETH_InitStructure.ETH_MulticastFramesFilter = ETH_MulticastFramesFilter_Perfect;//ï¿½ï¿½ï¿½ï¿½ï¿½é²¥ï¿½ï¿½Ö·Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½   
+	ETH_InitStructure.ETH_UnicastFramesFilter = ETH_UnicastFramesFilter_Perfect;	//ï¿½Ôµï¿½ï¿½ï¿½ï¿½ï¿½Ö·Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ 
 #ifdef CHECKSUM_BY_HARDWARE
-	ETH_InitStructure.ETH_ChecksumOffload = ETH_ChecksumOffload_Enable; 			//¿ªÆôipv4ºÍTCP/UDP/ICMPµÄÖ¡Ð£ÑéºÍÐ¶ÔØ   
+	ETH_InitStructure.ETH_ChecksumOffload = ETH_ChecksumOffload_Enable; 			//ï¿½ï¿½ï¿½ï¿½ipv4ï¿½ï¿½TCP/UDP/ICMPï¿½ï¿½Ö¡Ð£ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½   
 #endif
-	//µ±ÎÒÃÇÊ¹ÓÃÖ¡Ð£ÑéºÍÐ¶ÔØ¹¦ÄÜµÄÊ±ºò£¬Ò»¶¨ÒªÊ¹ÄÜ´æ´¢×ª·¢Ä£Ê½,´æ´¢×ª·¢Ä£Ê½ÖÐÒª±£Ö¤Õû¸öÖ¡´æ´¢ÔÚFIFOÖÐ,
-	//ÕâÑùMACÄÜ²åÈë/Ê¶±ð³öÖ¡Ð£ÑéÖµ,µ±ÕæÐ£ÑéÕýÈ·µÄÊ±ºòDMA¾Í¿ÉÒÔ´¦ÀíÖ¡,·ñÔò¾Í¶ªÆúµô¸ÃÖ¡
-	ETH_InitStructure.ETH_DropTCPIPChecksumErrorFrame = ETH_DropTCPIPChecksumErrorFrame_Enable; //¿ªÆô¶ªÆúTCP/IP´íÎóÖ¡
-	ETH_InitStructure.ETH_ReceiveStoreForward = ETH_ReceiveStoreForward_Enable;     //¿ªÆô½ÓÊÕÊý¾ÝµÄ´æ´¢×ª·¢Ä£Ê½    
-	ETH_InitStructure.ETH_TransmitStoreForward = ETH_TransmitStoreForward_Enable;   //¿ªÆô·¢ËÍÊý¾ÝµÄ´æ´¢×ª·¢Ä£Ê½  
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½Ö¡Ð£ï¿½ï¿½ï¿½Ð¶ï¿½Ø¹ï¿½ï¿½Üµï¿½Ê±ï¿½ï¿½Ò»ï¿½ï¿½ÒªÊ¹ï¿½Ü´æ´¢×ªï¿½ï¿½Ä£Ê½,ï¿½æ´¢×ªï¿½ï¿½Ä£Ê½ï¿½ï¿½Òªï¿½ï¿½Ö¤ï¿½ï¿½ï¿½ï¿½Ö¡ï¿½æ´¢ï¿½ï¿½FIFOï¿½ï¿½,
+	//ï¿½ï¿½ï¿½ï¿½MACï¿½Ü²ï¿½ï¿½ï¿½/Ê¶ï¿½ï¿½ï¿½Ö¡Ð£ï¿½ï¿½Öµ,ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½Ê±ï¿½ï¿½DMAï¿½Í¿ï¿½ï¿½Ô´ï¿½ï¿½ï¿½Ö¡,ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¡
+	ETH_InitStructure.ETH_DropTCPIPChecksumErrorFrame = ETH_DropTCPIPChecksumErrorFrame_Enable; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½TCP/IPï¿½ï¿½ï¿½ï¿½Ö¡
+	ETH_InitStructure.ETH_ReceiveStoreForward = ETH_ReceiveStoreForward_Enable;     //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÝµÄ´æ´¢×ªï¿½ï¿½Ä£Ê½    
+	ETH_InitStructure.ETH_TransmitStoreForward = ETH_TransmitStoreForward_Enable;   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÝµÄ´æ´¢×ªï¿½ï¿½Ä£Ê½  
 
-	ETH_InitStructure.ETH_ForwardErrorFrames = ETH_ForwardErrorFrames_Disable;     	//½ûÖ¹×ª·¢´íÎóÖ¡  
-	ETH_InitStructure.ETH_ForwardUndersizedGoodFrames = ETH_ForwardUndersizedGoodFrames_Disable;	//²»×ª·¢¹ýÐ¡µÄºÃÖ¡ 
-	ETH_InitStructure.ETH_SecondFrameOperate = ETH_SecondFrameOperate_Enable;  		//´ò¿ª´¦ÀíµÚ¶þÖ¡¹¦ÄÜ
-	ETH_InitStructure.ETH_AddressAlignedBeats = ETH_AddressAlignedBeats_Enable;  	//¿ªÆôDMA´«ÊäµÄµØÖ·¶ÔÆë¹¦ÄÜ
-	ETH_InitStructure.ETH_FixedBurst = ETH_FixedBurst_Enable;            			//¿ªÆô¹Ì¶¨Í»·¢¹¦ÄÜ    
-	ETH_InitStructure.ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;     		//DMA·¢ËÍµÄ×î´óÍ»·¢³¤¶ÈÎª32¸ö½ÚÅÄ   
-	ETH_InitStructure.ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;			//DMA½ÓÊÕµÄ×î´óÍ»·¢³¤¶ÈÎª32¸ö½ÚÅÄ
+	ETH_InitStructure.ETH_ForwardErrorFrames = ETH_ForwardErrorFrames_Disable;     	//ï¿½ï¿½Ö¹×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¡  
+	ETH_InitStructure.ETH_ForwardUndersizedGoodFrames = ETH_ForwardUndersizedGoodFrames_Disable;	//ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½Ð¡ï¿½Äºï¿½Ö¡ 
+	ETH_InitStructure.ETH_SecondFrameOperate = ETH_SecondFrameOperate_Enable;  		//ï¿½ò¿ª´ï¿½ï¿½ï¿½ï¿½Ú¶ï¿½Ö¡ï¿½ï¿½ï¿½ï¿½
+	ETH_InitStructure.ETH_AddressAlignedBeats = ETH_AddressAlignedBeats_Enable;  	//ï¿½ï¿½ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½Äµï¿½Ö·ï¿½ï¿½ï¿½ë¹¦ï¿½ï¿½
+	ETH_InitStructure.ETH_FixedBurst = ETH_FixedBurst_Enable;            			//ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½    
+	ETH_InitStructure.ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;     		//DMAï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª32ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½   
+	ETH_InitStructure.ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;			//DMAï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª32ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	ETH_InitStructure.ETH_DMAArbitration = ETH_DMAArbitration_RoundRobin_RxTx_2_1;
-	rval=ETH_Init(&ETH_InitStructure,LAN8720_PHY_ADDRESS);		//ÅäÖÃETH
-	if(rval==ETH_SUCCESS)//ÅäÖÃ³É¹¦
+	rval=ETH_Init(&ETH_InitStructure,LAN8720_PHY_ADDRESS);		//ï¿½ï¿½ï¿½ï¿½ETH
+	if(rval==ETH_SUCCESS)//ï¿½ï¿½ï¿½Ã³É¹ï¿½
 	{
-		ETH_DMAITConfig(ETH_DMA_IT_NIS|ETH_DMA_IT_R,ENABLE);  	//Ê¹ÄÜÒÔÌ«Íø½ÓÊÕÖÐ¶Ï	
+		ETH_DMAITConfig(ETH_DMA_IT_NIS|ETH_DMA_IT_R,ENABLE);  	//Ê¹ï¿½ï¿½ï¿½ï¿½Ì«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½	
 	}
 	return rval;
 }
 
-extern void lwip_pkt_handle(void);		//ÔÚlwip_comm.cÀïÃæ¶¨Òå
-//ÒÔÌ«ÍøDMA½ÓÊÕÖÐ¶Ï·þÎñº¯Êý
+extern void lwip_pkt_handle(void);		//ï¿½ï¿½lwip_comm.cï¿½ï¿½ï¿½æ¶¨ï¿½ï¿½
+//ï¿½ï¿½Ì«ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ï·ï¿½ï¿½ï¿½ï¿½ï¿½
 void ETH_IRQHandler(void)
 {
-	while(ETH_GetRxPktSize(DMARxDescToGet)!=0) 	//¼ì²âÊÇ·ñÊÕµ½Êý¾Ý°ü
+	while(ETH_GetRxPktSize(DMARxDescToGet)!=0) 	//ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½Ý°ï¿½
 	{ 
 		lwip_pkt_handle();		
 	}
-	ETH_DMAClearITPendingBit(ETH_DMA_IT_R); 	//Çå³ýDMAÖÐ¶Ï±êÖ¾Î»
-	ETH_DMAClearITPendingBit(ETH_DMA_IT_NIS);	//Çå³ýDMA½ÓÊÕÖÐ¶Ï±êÖ¾Î»
+	ETH_DMAClearITPendingBit(ETH_DMA_IT_R); 	//ï¿½ï¿½ï¿½DMAï¿½Ð¶Ï±ï¿½Ö¾Î»
+	ETH_DMAClearITPendingBit(ETH_DMA_IT_NIS);	//ï¿½ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ï±ï¿½Ö¾Î»
 }  
-//½ÓÊÕÒ»¸öÍø¿¨Êý¾Ý°ü
-//·µ»ØÖµ:ÍøÂçÊý¾Ý°üÖ¡½á¹¹Ìå
+//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý°ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý°ï¿½Ö¡ï¿½á¹¹ï¿½ï¿½
 FrameTypeDef ETH_Rx_Packet(void)
 { 
 	u32 framelength=0;
 	FrameTypeDef frame={0,0};   
-	//¼ì²éµ±Ç°ÃèÊö·û,ÊÇ·ñÊôÓÚETHERNET DMA(ÉèÖÃµÄÊ±ºò)/CPU(¸´Î»µÄÊ±ºò)
+	//ï¿½ï¿½éµ±Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ETHERNET DMA(ï¿½ï¿½ï¿½Ãµï¿½Ê±ï¿½ï¿½)/CPU(ï¿½ï¿½Î»ï¿½ï¿½Ê±ï¿½ï¿½)
 	if((DMARxDescToGet->Status&ETH_DMARxDesc_OWN)!=(u32)RESET)
 	{	
 		frame.length=ETH_ERROR; 
 		if ((ETH->DMASR&ETH_DMASR_RBUS)!=(u32)RESET)  
 		{ 
-			ETH->DMASR = ETH_DMASR_RBUS;//Çå³ýETH DMAµÄRBUSÎ» 
-			ETH->DMARPDR=0;//»Ö¸´DMA½ÓÊÕ
+			ETH->DMASR = ETH_DMASR_RBUS;//ï¿½ï¿½ï¿½ETH DMAï¿½ï¿½RBUSÎ» 
+			ETH->DMARPDR=0;//ï¿½Ö¸ï¿½DMAï¿½ï¿½ï¿½ï¿½
 		}
-		return frame;//´íÎó,OWNÎ»±»ÉèÖÃÁË
+		return frame;//ï¿½ï¿½ï¿½ï¿½,OWNÎ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	}  
 	if(((DMARxDescToGet->Status&ETH_DMARxDesc_ES)==(u32)RESET)&& 
 	((DMARxDescToGet->Status & ETH_DMARxDesc_LS)!=(u32)RESET)&&  
 	((DMARxDescToGet->Status & ETH_DMARxDesc_FS)!=(u32)RESET))  
 	{       
-		framelength=((DMARxDescToGet->Status&ETH_DMARxDesc_FL)>>ETH_DMARxDesc_FrameLengthShift)-4;//µÃµ½½ÓÊÕ°üÖ¡³¤¶È(²»°üº¬4×Ö½ÚCRC)
- 		frame.buffer = DMARxDescToGet->Buffer1Addr;//µÃµ½°üÊý¾ÝËùÔÚµÄÎ»ÖÃ
-	}else framelength=ETH_ERROR;//´íÎó  
+		framelength=((DMARxDescToGet->Status&ETH_DMARxDesc_FL)>>ETH_DMARxDesc_FrameLengthShift)-4;//ï¿½Ãµï¿½ï¿½ï¿½ï¿½Õ°ï¿½Ö¡ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½4ï¿½Ö½ï¿½CRC)
+ 		frame.buffer = DMARxDescToGet->Buffer1Addr;//ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½Î»ï¿½ï¿½
+	}else framelength=ETH_ERROR;//ï¿½ï¿½ï¿½ï¿½  
 	frame.length=framelength; 
 	frame.descriptor=DMARxDescToGet;  
-	//¸üÐÂETH DMAÈ«¾ÖRxÃèÊö·ûÎªÏÂÒ»¸öRxÃèÊö·û
-	//ÎªÏÂÒ»´Îbuffer¶ÁÈ¡ÉèÖÃÏÂÒ»¸öDMA RxÃèÊö·û
+	//ï¿½ï¿½ï¿½ï¿½ETH DMAÈ«ï¿½ï¿½Rxï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Ò»ï¿½ï¿½Rxï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//Îªï¿½ï¿½Ò»ï¿½ï¿½bufferï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½DMA Rxï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	DMARxDescToGet=(ETH_DMADESCTypeDef*)(DMARxDescToGet->Buffer2NextDescAddr);   
 	return frame;  
 }
-//·¢ËÍÒ»¸öÍø¿¨Êý¾Ý°ü
-//FrameLength:Êý¾Ý°ü³¤¶È
-//·µ»ØÖµ:ETH_ERROR,·¢ËÍÊ§°Ü(0)
-//		ETH_SUCCESS,·¢ËÍ³É¹¦(1)
+//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý°ï¿½
+//FrameLength:ï¿½ï¿½ï¿½Ý°ï¿½ï¿½ï¿½ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:ETH_ERROR,ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½(0)
+//		ETH_SUCCESS,ï¿½ï¿½ï¿½Í³É¹ï¿½(1)
 u8 ETH_Tx_Packet(u16 FrameLength)
 {   
-	//¼ì²éµ±Ç°ÃèÊö·û,ÊÇ·ñÊôÓÚETHERNET DMA(ÉèÖÃµÄÊ±ºò)/CPU(¸´Î»µÄÊ±ºò)
-	if((DMATxDescToSet->Status&ETH_DMATxDesc_OWN)!=(u32)RESET)return ETH_ERROR;//´íÎó,OWNÎ»±»ÉèÖÃÁË 
- 	DMATxDescToSet->ControlBufferSize=(FrameLength&ETH_DMATxDesc_TBS1);//ÉèÖÃÖ¡³¤¶È,bits[12:0]
-	DMATxDescToSet->Status|=ETH_DMATxDesc_LS|ETH_DMATxDesc_FS;//ÉèÖÃ×îºóÒ»¸öºÍµÚÒ»¸öÎ»¶ÎÖÃÎ»(1¸öÃèÊö·û´«ÊäÒ»Ö¡)
-  	DMATxDescToSet->Status|=ETH_DMATxDesc_OWN;//ÉèÖÃTxÃèÊö·ûµÄOWNÎ»,bufferÖØ¹éETH DMA
-	if((ETH->DMASR&ETH_DMASR_TBUS)!=(u32)RESET)//µ±Tx Buffer²»¿ÉÓÃÎ»(TBUS)±»ÉèÖÃµÄÊ±ºò,ÖØÖÃËü.»Ö¸´´«Êä
+	//ï¿½ï¿½éµ±Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ETHERNET DMA(ï¿½ï¿½ï¿½Ãµï¿½Ê±ï¿½ï¿½)/CPU(ï¿½ï¿½Î»ï¿½ï¿½Ê±ï¿½ï¿½)
+	if((DMATxDescToSet->Status&ETH_DMATxDesc_OWN)!=(u32)RESET)return ETH_ERROR;//ï¿½ï¿½ï¿½ï¿½,OWNÎ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+ 	DMATxDescToSet->ControlBufferSize=(FrameLength&ETH_DMATxDesc_TBS1);//ï¿½ï¿½ï¿½ï¿½Ö¡ï¿½ï¿½ï¿½ï¿½,bits[12:0]
+	DMATxDescToSet->Status|=ETH_DMATxDesc_LS|ETH_DMATxDesc_FS;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Íµï¿½Ò»ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½Î»(1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»Ö¡)
+  	DMATxDescToSet->Status|=ETH_DMATxDesc_OWN;//ï¿½ï¿½ï¿½ï¿½Txï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½OWNÎ»,bufferï¿½Ø¹ï¿½ETH DMA
+	if((ETH->DMASR&ETH_DMASR_TBUS)!=(u32)RESET)//ï¿½ï¿½Tx Bufferï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»(TBUS)ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½Ê±ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½
 	{ 
-		ETH->DMASR=ETH_DMASR_TBUS;//ÖØÖÃETH DMA TBUSÎ» 
-		ETH->DMATPDR=0;//»Ö¸´DMA·¢ËÍ
+		ETH->DMASR=ETH_DMASR_TBUS;//ï¿½ï¿½ï¿½ï¿½ETH DMA TBUSÎ» 
+		ETH->DMATPDR=0;//ï¿½Ö¸ï¿½DMAï¿½ï¿½ï¿½ï¿½
 	} 
-	//¸üÐÂETH DMAÈ«¾ÖTxÃèÊö·ûÎªÏÂÒ»¸öTxÃèÊö·û
-	//ÎªÏÂÒ»´Îbuffer·¢ËÍÉèÖÃÏÂÒ»¸öDMA TxÃèÊö·û 
+	//ï¿½ï¿½ï¿½ï¿½ETH DMAÈ«ï¿½ï¿½Txï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Ò»ï¿½ï¿½Txï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//Îªï¿½ï¿½Ò»ï¿½ï¿½bufferï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½DMA Txï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
 	DMATxDescToSet=(ETH_DMADESCTypeDef*)(DMATxDescToSet->Buffer2NextDescAddr);    
 	return ETH_SUCCESS;   
 }
-//µÃµ½µ±Ç°ÃèÊö·ûµÄTx bufferµØÖ·
-//·µ»ØÖµ:Tx bufferµØÖ·
+//ï¿½Ãµï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Tx bufferï¿½ï¿½Ö·
+//ï¿½ï¿½ï¿½ï¿½Öµ:Tx bufferï¿½ï¿½Ö·
 u32 ETH_GetCurrentTxBuffer(void)
 {  
-  return DMATxDescToSet->Buffer1Addr;//·µ»ØTx bufferµØÖ·  
+  return DMATxDescToSet->Buffer1Addr;//ï¿½ï¿½ï¿½ï¿½Tx bufferï¿½ï¿½Ö·  
 }
 
-//ÎªETHµ×²ãÇý¶¯ÉêÇëÄÚ´æ
-//·µ»ØÖµ:0,Õý³£
-//    ÆäËû,Ê§°Ü
+//ÎªETHï¿½×²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:0,ï¿½ï¿½ï¿½ï¿½
+//    ï¿½ï¿½ï¿½ï¿½,Ê§ï¿½ï¿½
 u8 ETH_Mem_Malloc(void)
 { 
-	DMARxDscrTab=mymalloc(SRAMIN,ETH_RXBUFNB*sizeof(ETH_DMADESCTypeDef));//ÉêÇëÄÚ´æ
-	DMATxDscrTab=mymalloc(SRAMIN,ETH_TXBUFNB*sizeof(ETH_DMADESCTypeDef));//ÉêÇëÄÚ´æ  
-	Rx_Buff=mymalloc(SRAMIN,ETH_RX_BUF_SIZE*ETH_RXBUFNB);	//ÉêÇëÄÚ´æ
-	Tx_Buff=mymalloc(SRAMIN,ETH_TX_BUF_SIZE*ETH_TXBUFNB);	//ÉêÇëÄÚ´æ
+	DMARxDscrTab=mymalloc(SRAMIN,ETH_RXBUFNB*sizeof(ETH_DMADESCTypeDef));//ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
+	DMATxDscrTab=mymalloc(SRAMIN,ETH_TXBUFNB*sizeof(ETH_DMADESCTypeDef));//ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½  
+	Rx_Buff=mymalloc(SRAMIN,ETH_RX_BUF_SIZE*ETH_RXBUFNB);	//ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
+	Tx_Buff=mymalloc(SRAMIN,ETH_TX_BUF_SIZE*ETH_TXBUFNB);	//ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
 	if(!DMARxDscrTab||!DMATxDscrTab||!Rx_Buff||!Tx_Buff)
 	{
 		ETH_Mem_Free();
-		return 1;	//ÉêÇëÊ§°Ü
+		return 1;	//ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½
 	}	
-	return 0;		//ÉêÇë³É¹¦
+	return 0;		//ï¿½ï¿½ï¿½ï¿½É¹ï¿½
 }
 
-//ÊÍ·ÅETH µ×²ãÇý¶¯ÉêÇëµÄÄÚ´æ
+//ï¿½Í·ï¿½ETH ï¿½×²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
 void ETH_Mem_Free(void)
 { 
-	myfree(SRAMIN,DMARxDscrTab);//ÊÍ·ÅÄÚ´æ
-	myfree(SRAMIN,DMATxDscrTab);//ÊÍ·ÅÄÚ´æ
-	myfree(SRAMIN,Rx_Buff);		//ÊÍ·ÅÄÚ´æ
-	myfree(SRAMIN,Tx_Buff);		//ÊÍ·ÅÄÚ´æ  
+	myfree(SRAMIN,DMARxDscrTab);//ï¿½Í·ï¿½ï¿½Ú´ï¿½
+	myfree(SRAMIN,DMATxDscrTab);//ï¿½Í·ï¿½ï¿½Ú´ï¿½
+	myfree(SRAMIN,Rx_Buff);		//ï¿½Í·ï¿½ï¿½Ú´ï¿½
+	myfree(SRAMIN,Tx_Buff);		//ï¿½Í·ï¿½ï¿½Ú´ï¿½  
 }
 
 
