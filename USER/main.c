@@ -245,11 +245,9 @@ void tcp_server_task(void *pvParameters)
 	int opt = 1;
 	setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 	
-	// 设置SO_LINGER选项，确保关闭时立即释放资源
-	struct linger linger_opt;
-	linger_opt.l_onoff = 1;   // 启用linger
-	linger_opt.l_linger = 0;  // 超时时间为0，立即关闭
-	setsockopt(server_sock, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt));
+	// 设置SO_KEEPALIVE，检测死连接
+	opt = 1;
+	setsockopt(server_sock, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt));
 	
 	// 绑定地址和端口
 	memset(&server_addr, 0, sizeof(server_addr));
@@ -291,24 +289,25 @@ void tcp_server_task(void *pvParameters)
 			continue;
 		}
 		
-		// 设置client socket的SO_LINGER选项
-		setsockopt(client_sock, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt));
+		// 启用TCP Keep-Alive，检测死连接
+		opt = 1;
+		setsockopt(client_sock, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt));
 		
-		// 设置接收超时，避免长时间阻塞
+		// 先不设置非阻塞模式，使用阻塞模式但设置超时
 		int timeout_ms = 100;  // 100ms超时
 		setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, &timeout_ms, sizeof(timeout_ms));
 		setsockopt(client_sock, SOL_SOCKET, SO_SNDTIMEO, &timeout_ms, sizeof(timeout_ms));
 		
-		// 设置socket为非阻塞模式，以便同时处理串口和TCP数据
-		unsigned long flags = 1;
-		ioctlsocket(client_sock, FIONBIO, &flags);
-		
 		// 打印客户端连接信息
 		char ip_str[16];
 		inet_ntoa_r(client_addr.sin_addr, ip_str, sizeof(ip_str));
-		printf("TCP Server: Client connected from %s:%d\r\n", ip_str, ntohs(client_addr.sin_port));
+		printf("TCP Server: Client connected from %s:%d (socket=%d)\r\n", ip_str, ntohs(client_addr.sin_port), client_sock);
+		
+		// 连接建立后稍微延时，让TCP握手完全完成
+		vTaskDelay(50);
 		
 		// 接收和发送数据循环
+		int loop_count = 0;
 		while(1)
 		{
 			// 检查串口是否有数据需要转发
@@ -322,13 +321,12 @@ void tcp_server_task(void *pvParameters)
 					if(ret < 0)
 					{
 						printf("TCP Server: Failed to send UART data, err=%d\r\n", ret);
-						// 先shutdown再close，确保资源完全释放
-						shutdown(client_sock, SHUT_RDWR);
-						vTaskDelay(10);  // 短暂延时让LwIP处理
-						close(client_sock);
-						break;  // 退出内层循环，等待下一个连接
+						break;  // 退出内层循环，关闭连接
 					}
-					printf("TCP Server: Forwarded %d bytes from UART to TCP\r\n", ret);
+					else
+					{
+						printf("TCP Server: Forwarded %d bytes from UART to TCP\r\n", ret);
+					}
 					
 					// 清空串口接收状态
 					USART_RX_STA = 0;
@@ -337,15 +335,9 @@ void tcp_server_task(void *pvParameters)
 			
 			// 接收TCP数据（非阻塞）
 			recv_len = recv(client_sock, recv_buf, sizeof(recv_buf) - 1, 0);
-			// if(recv_len == -1) {
-            //     shutdown(client_sock, SHUT_RDWR);
-            //     vTaskDelay(10);  // 短暂延时让LwIP处理
-            //     close(client_sock);
-            //     break;  // 退出内层循环，等待下一个连接
-            // }
+			
 			if(recv_len > 0)
 			{
-				
 				// 确保字符串以null结尾
 				recv_buf[recv_len] = '\0';
 				
@@ -370,30 +362,48 @@ void tcp_server_task(void *pvParameters)
 				if(ret < 0)
 				{
 					printf("TCP Server: send error, err=%d\r\n", ret);
-					// 先shutdown再close，确保资源完全释放
-					shutdown(client_sock, SHUT_RDWR);
-					vTaskDelay(10);  // 短暂延时让LwIP处理
-					close(client_sock);
-					break;  // 退出内层循环，等待下一个连接
+					break;  // 退出内层循环，关闭连接
 				}
-				printf("TCP Server: Sent %d bytes back\r\n", ret);
+				else if(ret != recv_len)
+				{
+					printf("TCP Server: Partial send, sent %d of %d bytes\r\n", ret, recv_len);
+				}
+				else
+				{
+					printf("TCP Server: Sent %d bytes back\r\n", ret);
+				}
 			}
 			else if(recv_len == 0)
 			{
-					printf("TCP Server: Connection error, closing socket\r\n");
-					// 先shutdown再close，确保资源完全释放
-					shutdown(client_sock, SHUT_RDWR);
-					vTaskDelay(10);  // 短暂延时让LwIP处理
-					close(client_sock);
-					break;  // 退出内层循环，等待下一个连接
+				// 对端正常关闭连接
+				printf("TCP Server: Client closed connection\r\n");
+				break;  // 退出内层循环，关闭连接
+			}
+			else  // recv_len < 0
+			{
+				// recv超时或暂时没有数据，这是正常的
+				// 继续循环等待数据
+			}
+			
+			// 每隔1000次循环打印一次心跳，确认连接正常
+			loop_count++;
+			if(loop_count % 1000 == 0)
+			{
+				printf("TCP Server: Connection alive, loop=%d\r\n", loop_count);
 			}
 			
 			// 短暂延时，避免CPU占用过高
 			vTaskDelay(10);
 		}
 		
+		// 连接关闭流程：先shutdown再close
+		printf("TCP Server: Closing connection...\r\n");
+		shutdown(client_sock, SHUT_RDWR);
+		vTaskDelay(50);  // 延时让LwIP处理shutdown
+		close(client_sock);
+		
 		// 连接关闭后，额外延时确保LwIP完全清理资源
-		printf("TCP Server: Waiting for resource cleanup...\r\n");
-		vTaskDelay(100);  // 增加延时到100ms，确保LwIP完全清理
+		printf("TCP Server: Connection closed, waiting for cleanup...\r\n");
+		vTaskDelay(200);  // 增加延时到200ms，确保LwIP完全清理TIME_WAIT状态
 	}
 }
