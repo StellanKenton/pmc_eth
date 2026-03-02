@@ -16,84 +16,84 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "led.h"
-//ÕâÊÇ¸öLWIPµÄÍ¨ÓÃÎÄ¼þ
+//ï¿½ï¿½ï¿½Ç¸ï¿½LWIPï¿½ï¿½Í¨ï¿½ï¿½ï¿½Ä¼ï¿½
 
 //////////////////////////////////////////////////////////////////////////////////	 
-//±¾³ÌÐòÖ»¹©Ñ§Ï°Ê¹ÓÃ£¬Î´¾­×÷ÕßÐí¿É£¬²»µÃÓÃÓÚÆäËüÈÎºÎÓÃÍ¾
-//ALIENTEK STM32F407¿ª·¢°å
-//lwipÍ¨ÓÃÇý¶¯ ´úÂë	   
-//ÕýµãÔ­×Ó@ALIENTEK
-//¼¼ÊõÂÛÌ³:www.openedv.com
-//´´½¨ÈÕÆÚ:2014/8/15
-//°æ±¾£ºV1.0
-//°æÈ¨ËùÓÐ£¬µÁ°æ±Ø¾¿¡£
-//Copyright(C) ¹ãÖÝÊÐÐÇÒíµç×Ó¿Æ¼¼ÓÐÏÞ¹«Ë¾ 2009-2019
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Ñ§Ï°Ê¹ï¿½Ã£ï¿½Î´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½Í¾
+//ALIENTEK STM32F407ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//lwipÍ¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½	   
+//ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½@ALIENTEK
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì³:www.openedv.com
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:2014/8/15
+//ï¿½æ±¾ï¿½ï¿½V1.0
+//ï¿½ï¿½È¨ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½
+//Copyright(C) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Æ¼ï¿½ï¿½ï¿½ï¿½Þ¹ï¿½Ë¾ 2009-2019
 //All rights reserved									  
 //*******************************************************************************
-//ÐÞ¸ÄÐÅÏ¢
-//ÎÞ
+//ï¿½Þ¸ï¿½ï¿½ï¿½Ï¢
+//ï¿½ï¿½
 ////////////////////////////////////////////////////////////////////////////////// 	   
    
-__lwip_dev lwipdev;							//lwip¿ØÖÆ½á¹¹Ìå 
-struct netif lwip_netif;				//¶¨ÒåÒ»¸öÈ«¾ÖµÄÍøÂç½Ó¿Ú
+__lwip_dev lwipdev;							//lwipï¿½ï¿½ï¿½Æ½á¹¹ï¿½ï¿½ 
+struct netif lwip_netif;				//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½È«ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½
 
-extern u32 memp_get_memorysize(void);	//ÔÚmemp.cÀïÃæ¶¨Òå
-extern u8_t *memp_memory;				//ÔÚmemp.cÀïÃæ¶¨Òå.
-extern u8_t *ram_heap;					//ÔÚmem.cÀïÃæ¶¨Òå.
+extern u32 memp_get_memorysize(void);	//ï¿½ï¿½memp.cï¿½ï¿½ï¿½æ¶¨ï¿½ï¿½
+extern u8_t *memp_memory;				//ï¿½ï¿½memp.cï¿½ï¿½ï¿½æ¶¨ï¿½ï¿½.
+extern u8_t *ram_heap;					//ï¿½ï¿½mem.cï¿½ï¿½ï¿½æ¶¨ï¿½ï¿½.
 
-//u32 TCPTimer=0;			//TCP²éÑ¯¼ÆÊ±Æ÷
-//u32 ARPTimer=0;			//ARP²éÑ¯¼ÆÊ±Æ÷
-//u32 lwip_localtime;		//lwip±¾µØÊ±¼ä¼ÆÊýÆ÷,µ¥Î»:ms
+//u32 TCPTimer=0;			//TCPï¿½ï¿½Ñ¯ï¿½ï¿½Ê±ï¿½ï¿½
+//u32 ARPTimer=0;			//ARPï¿½ï¿½Ñ¯ï¿½ï¿½Ê±ï¿½ï¿½
+//u32 lwip_localtime;		//lwipï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½Î»:ms
 
-//lwipÁ½¸öÈÎÎñ¶¨Òå£¨ÄÚºËÈÎÎñºÍDHCPÈÎÎñ£©
+//lwipï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å£¨ï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½DHCPï¿½ï¿½ï¿½ï¿½
 
-//lwipÄÚºËÈÎÎñ¶ÑÕ»£¨ÓÅÏÈ¼¶ºÍ¶ÑÕ»´óÐ¡ÔÚlwipopts.h¶¨ÒåÁË£©
+//lwipï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ»ï¿½ï¿½ï¿½ï¿½ï¿½È¼ï¿½ï¿½Í¶ï¿½Õ»ï¿½ï¿½Ð¡ï¿½ï¿½lwipopts.hï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½
 TaskHandle_t  TCPIP_THREAD_Task_Handler;
 
-//lwip DHCPÈÎÎñ
-//ÉèÖÃÈÎÎñÓÅÏÈ¼¶
+//lwip DHCPï¿½ï¿½ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¼ï¿½
 #define LWIP_DHCP_TASK_PRIO		7
-//ÈÎÎñ¶ÑÕ»´óÐ¡	
+//ï¿½ï¿½ï¿½ï¿½ï¿½Õ»ï¿½ï¿½Ð¡	
 #define LWIP_DHCP_STK_SIZE 		128  
-//ÈÎÎñ¾ä±ú(ÈÎÎñ¶ÑÕ»)  ²ÉÓÃÄÚ´æ¹ÜÀíµÄ·½Ê½¿ØÖÆÉêÇë
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½Õ»)  ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½Ä·ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 TaskHandle_t  LWIP_DHCP_TASK_Handler;
-//ÈÎÎñº¯Êý
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void lwip_dhcp_task(void *pvParameters);
 
 #if LWIP_DHCP
-u32 DHCPfineTimer=0;	//DHCP¾«Ï¸´¦Àí¼ÆÊ±Æ÷
-u32 DHCPcoarseTimer=0;	//DHCP´Ö²Ú´¦Àí¼ÆÊ±Æ÷
+u32 DHCPfineTimer=0;	//DHCPï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+u32 DHCPcoarseTimer=0;	//DHCPï¿½Ö²Ú´ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 #endif
 
-//ÓÃÓÚÒÔÌ«ÍøÖÐ¶Ïµ÷ÓÃ
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì«ï¿½ï¿½ï¿½Ð¶Ïµï¿½ï¿½ï¿½
 void lwip_pkt_handle(void)
 {
-  //´ÓÍøÂç»º³åÇøÖÐ¶ÁÈ¡½ÓÊÕµ½µÄÊý¾Ý°ü²¢½«Æä·¢ËÍ¸øLWIP´¦Àí 
+  //ï¿½ï¿½ï¿½ï¿½ï¿½ç»ºï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½È¡ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä·¢ï¿½Í¸ï¿½LWIPï¿½ï¿½ï¿½ï¿½ 
  ethernetif_input(&lwip_netif);
 }
 
-//lwipÄÚºË²¿·Ö
-//lwipÖÐmemºÍmempµÄÄÚ´æÉêÇë
-//·µ»ØÖµ:0,³É¹¦;
-//    ÆäËû,Ê§°Ü
+//lwipï¿½ÚºË²ï¿½ï¿½ï¿½
+//lwipï¿½ï¿½memï¿½ï¿½mempï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:0,ï¿½É¹ï¿½;
+//    ï¿½ï¿½ï¿½ï¿½,Ê§ï¿½ï¿½
 u8 lwip_comm_mem_malloc(void)
 {
 	u32 mempsize;
 	u32 ramheapsize; 
-	mempsize=memp_get_memorysize();					//µÃµ½memp_memoryÊý×é´óÐ¡
-	memp_memory=mymalloc(SRAMIN,mempsize);	//Îªmemp_memoryÉêÇëÄÚ´æ
-	ramheapsize=LWIP_MEM_ALIGN_SIZE(MEM_SIZE)+2*LWIP_MEM_ALIGN_SIZE(4*3)+MEM_ALIGNMENT;//µÃµ½ram heap´óÐ¡
-	ram_heap=mymalloc(SRAMIN,ramheapsize);	//Îªram_heapÉêÇëÄÚ´æ 
-	TCPIP_THREAD_Task_Handler=mymalloc(SRAMIN,TCPIP_THREAD_STACKSIZE*4);//¸øÄÚºËÈÎÎñÉêÇë¶ÑÕ» 
-	LWIP_DHCP_TASK_Handler=mymalloc(SRAMIN,LWIP_DHCP_STK_SIZE*4);				 //¸ødhcpÈÎÎñ¶ÑÕ»ÉêÇëÄÚ´æ¿Õ¼ä
-	if(!memp_memory||!ram_heap||!TCPIP_THREAD_Task_Handler||!TCPIP_THREAD_Task_Handler)//ÓÐÉêÇëÊ§°ÜµÄ
+	mempsize=memp_get_memorysize();					//ï¿½Ãµï¿½memp_memoryï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
+	memp_memory=mymalloc(SRAMIN,mempsize);	//Îªmemp_memoryï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
+	ramheapsize=LWIP_MEM_ALIGN_SIZE(MEM_SIZE)+2*LWIP_MEM_ALIGN_SIZE(4*3)+MEM_ALIGNMENT;//ï¿½Ãµï¿½ram heapï¿½ï¿½Ð¡
+	ram_heap=mymalloc(SRAMIN,ramheapsize);	//Îªram_heapï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ 
+	TCPIP_THREAD_Task_Handler=mymalloc(SRAMIN,TCPIP_THREAD_STACKSIZE*4);//ï¿½ï¿½ï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ» 
+	LWIP_DHCP_TASK_Handler=mymalloc(SRAMIN,LWIP_DHCP_STK_SIZE*4);				 //ï¿½ï¿½dhcpï¿½ï¿½ï¿½ï¿½ï¿½Õ»ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½Õ¼ï¿½
+	if(!memp_memory||!ram_heap||!TCPIP_THREAD_Task_Handler||!TCPIP_THREAD_Task_Handler)//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½Üµï¿½
 	{
 		lwip_comm_mem_free();
 		return 1;
 	}
 	return 0;	
 }
-//lwipÖÐmemºÍmempÄÚ´æÊÍ·Å
+//lwipï¿½ï¿½memï¿½ï¿½mempï¿½Ú´ï¿½ï¿½Í·ï¿½
 void lwip_comm_mem_free(void)
 { 	
 	myfree(SRAMIN,memp_memory);
@@ -101,159 +101,159 @@ void lwip_comm_mem_free(void)
 	myfree(SRAMIN,TCPIP_THREAD_Task_Handler);
 	myfree(SRAMIN,LWIP_DHCP_TASK_Handler);
 }
-//lwip Ä¬ÈÏIPÉèÖÃ
-//lwipx:lwip¿ØÖÆ½á¹¹ÌåÖ¸Õë
+//lwip Ä¬ï¿½ï¿½IPï¿½ï¿½ï¿½ï¿½
+//lwipx:lwipï¿½ï¿½ï¿½Æ½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½
 void lwip_comm_default_ip_set(__lwip_dev *lwipx)
 {
 	u32 sn0;
-	sn0=*(vu32*)(0x1FFF7A10);//»ñÈ¡STM32µÄÎ¨Ò»IDµÄÇ°24Î»×÷ÎªMACµØÖ·ºóÈý×Ö½Ú
-	//Ä¬ÈÏÔ¶¶ËIPÎª:192.168.1.100
+	sn0=*(vu32*)(0x1FFF7A10);//ï¿½ï¿½È¡STM32ï¿½ï¿½Î¨Ò»IDï¿½ï¿½Ç°24Î»ï¿½ï¿½ÎªMACï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½Ö½ï¿½
+	//Ä¬ï¿½ï¿½Ô¶ï¿½ï¿½IPÎª:192.168.1.100
 	lwipx->remoteip[0]=192;	
 	lwipx->remoteip[1]=168;
 	lwipx->remoteip[2]=8;
 	lwipx->remoteip[3]=1;
-	//MACµØÖ·ÉèÖÃ(¸ßÈý×Ö½Ú¹Ì¶¨Îª:2.0.0,µÍÈý×Ö½ÚÓÃSTM32Î¨Ò»ID)
-	lwipx->mac[0]=2;//¸ßÈý×Ö½Ú(IEEE³ÆÖ®Îª×éÖ¯Î¨Ò»ID,OUI)µØÖ·¹Ì¶¨Îª:2.0.0
+	//MACï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½Ö½Ú¹Ì¶ï¿½Îª:2.0.0,ï¿½ï¿½ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½STM32Î¨Ò»ID)
+	lwipx->mac[0]=2;//ï¿½ï¿½ï¿½ï¿½ï¿½Ö½ï¿½(IEEEï¿½ï¿½Ö®Îªï¿½ï¿½Ö¯Î¨Ò»ID,OUI)ï¿½ï¿½Ö·ï¿½Ì¶ï¿½Îª:2.0.0
 	lwipx->mac[1]=0;
 	lwipx->mac[2]=0;
-	lwipx->mac[3]=(sn0>>16)&0XFF;//µÍÈý×Ö½ÚÓÃSTM32µÄÎ¨Ò»ID
+	lwipx->mac[3]=(sn0>>16)&0XFF;//ï¿½ï¿½ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½STM32ï¿½ï¿½Î¨Ò»ID
 	lwipx->mac[4]=(sn0>>8)&0XFFF;;
 	lwipx->mac[5]=sn0&0XFF; 
-	//Ä¬ÈÏ±¾µØIPÎª:192.168.1.30
+	//Ä¬ï¿½Ï±ï¿½ï¿½ï¿½IPÎª:192.168.1.30
 	lwipx->ip[0]=192;	
 	lwipx->ip[1]=168;
 	lwipx->ip[2]=8;
 	lwipx->ip[3]=30;
-	//Ä¬ÈÏ×ÓÍøÑÚÂë:255.255.255.0
+	//Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:255.255.255.0
 	lwipx->netmask[0]=255;	
 	lwipx->netmask[1]=255;
 	lwipx->netmask[2]=255;
 	lwipx->netmask[3]=0;
-	//Ä¬ÈÏÍø¹Ø:192.168.1.1
+	//Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:192.168.1.1
 	lwipx->gateway[0]=192;	
 	lwipx->gateway[1]=168;
 	lwipx->gateway[2]=8;
 	lwipx->gateway[3]=1;	
-	lwipx->dhcpstatus=0;//Ã»ÓÐDHCP	
+	lwipx->dhcpstatus=0;//Ã»ï¿½ï¿½DHCP	
 } 
 
-//LWIP³õÊ¼»¯(LWIPÆô¶¯µÄÊ±ºòÊ¹ÓÃ)
-//·µ»ØÖµ:0,³É¹¦
-//      1,ÄÚ´æ´íÎó
-//      2,LAN8720³õÊ¼»¯Ê§°Ü
-//      3,Íø¿¨Ìí¼ÓÊ§°Ü.
+//LWIPï¿½ï¿½Ê¼ï¿½ï¿½(LWIPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ê¹ï¿½ï¿½)
+//ï¿½ï¿½ï¿½ï¿½Öµ:0,ï¿½É¹ï¿½
+//      1,ï¿½Ú´ï¿½ï¿½ï¿½ï¿½
+//      2,LAN8720ï¿½ï¿½Ê¼ï¿½ï¿½Ê§ï¿½ï¿½
+//      3,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½.
 u8 lwip_comm_init(void)
 {
 	sys_prot_t p;
-	struct netif *Netif_Init_Flag;			//µ÷ÓÃnetif_add()º¯ÊýÊ±µÄ·µ»ØÖµ,ÓÃÓÚÅÐ¶ÏÍøÂç³õÊ¼»¯ÊÇ·ñ³É¹¦
-	struct ip_addr ipaddr;  						//ipµØÖ·
-	struct ip_addr netmask; 						//×ÓÍøÑÚÂë
-	struct ip_addr gw;      						//Ä¬ÈÏÍø¹Ø 
-	if(ETH_Mem_Malloc())return 1;				//ÄÚ´æÉêÇëÊ§°Ü
-	if(lwip_comm_mem_malloc())return 1;	//ÄÚ´æÉêÇëÊ§°Ü
-	if(LAN8720_Init())return 2;					//³õÊ¼»¯LAN8720Ê§°Ü 
-	tcpip_init(NULL,NULL);							//³õÊ¼»¯tcp ipÄÚºË,¸Ãº¯ÊýÀïÃæ»á´´½¨tcpip_threadÄÚºËÈÎÎñ
-	lwip_comm_default_ip_set(&lwipdev);	//ÉèÖÃÄ¬ÈÏIPµÈÐÅÏ¢
+	struct netif *Netif_Init_Flag;			//ï¿½ï¿½ï¿½ï¿½netif_add()ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ä·ï¿½ï¿½ï¿½Öµ,ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ç·ï¿½É¹ï¿½
+	struct ip_addr ipaddr;  						//ipï¿½ï¿½Ö·
+	struct ip_addr netmask; 						//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	struct ip_addr gw;      						//Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+	if(ETH_Mem_Malloc())return 1;				//ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½
+	if(lwip_comm_mem_malloc())return 1;	//ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½
+	if(LAN8720_Init())return 2;					//ï¿½ï¿½Ê¼ï¿½ï¿½LAN8720Ê§ï¿½ï¿½ 
+	tcpip_init(NULL,NULL);							//ï¿½ï¿½Ê¼ï¿½ï¿½tcp ipï¿½Úºï¿½,ï¿½Ãºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á´´ï¿½ï¿½tcpip_threadï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½
+	lwip_comm_default_ip_set(&lwipdev);	//ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½IPï¿½ï¿½ï¿½ï¿½Ï¢
 
-#if LWIP_DHCP		//Ê¹ÓÃ¶¯Ì¬IP
+#if LWIP_DHCP		//Ê¹ï¿½Ã¶ï¿½Ì¬IP
 	ipaddr.addr = 0;
 	netmask.addr = 0;
 	gw.addr = 0;
-#else				//Ê¹ÓÃ¾²Ì¬IP
+#else				//Ê¹ï¿½Ã¾ï¿½Ì¬IP
 	IP4_ADDR(&ipaddr,lwipdev.ip[0],lwipdev.ip[1],lwipdev.ip[2],lwipdev.ip[3]);
 	IP4_ADDR(&netmask,lwipdev.netmask[0],lwipdev.netmask[1] ,lwipdev.netmask[2],lwipdev.netmask[3]);
 	IP4_ADDR(&gw,lwipdev.gateway[0],lwipdev.gateway[1],lwipdev.gateway[2],lwipdev.gateway[3]);
-	printf("Íø¿¨enµÄMACµØÖ·Îª:................%d.%d.%d.%d.%d.%d\r\n",lwipdev.mac[0],lwipdev.mac[1],lwipdev.mac[2],lwipdev.mac[3],lwipdev.mac[4],lwipdev.mac[5]);
-	printf("¾²Ì¬IPµØÖ·........................%d.%d.%d.%d\r\n",lwipdev.ip[0],lwipdev.ip[1],lwipdev.ip[2],lwipdev.ip[3]);
-	printf("×ÓÍøÑÚÂë..........................%d.%d.%d.%d\r\n",lwipdev.netmask[0],lwipdev.netmask[1],lwipdev.netmask[2],lwipdev.netmask[3]);
-	printf("Ä¬ÈÏÍø¹Ø..........................%d.%d.%d.%d\r\n",lwipdev.gateway[0],lwipdev.gateway[1],lwipdev.gateway[2],lwipdev.gateway[3]);
+	printf("static mac:................%d.%d.%d.%d.%d.%d\r\n",lwipdev.mac[0],lwipdev.mac[1],lwipdev.mac[2],lwipdev.mac[3],lwipdev.mac[4],lwipdev.mac[5]);
+	printf("static ip........................%d.%d.%d.%d\r\n",lwipdev.ip[0],lwipdev.ip[1],lwipdev.ip[2],lwipdev.ip[3]);
+	printf("static mask.........................%d.%d.%d.%d\r\n",lwipdev.netmask[0],lwipdev.netmask[1],lwipdev.netmask[2],lwipdev.netmask[3]);
+	printf("static gateway..........................%d.%d.%d.%d\r\n",lwipdev.gateway[0],lwipdev.gateway[1],lwipdev.gateway[2],lwipdev.gateway[3]);
 #endif
-	p=sys_arch_protect();   //½øÈëÁÙ½çÇø
-	Netif_Init_Flag=netif_add(&lwip_netif,&ipaddr,&netmask,&gw,NULL,&ethernetif_init,&tcpip_input);//ÏòÍø¿¨ÁÐ±íÖÐÌí¼ÓÒ»¸öÍø¿Ú
-	sys_arch_unprotect(p);  //ÍË³öÁÙ½çÇø
+	p=sys_arch_protect();   //ï¿½ï¿½ï¿½ï¿½ï¿½Ù½ï¿½ï¿½ï¿½
+	Netif_Init_Flag=netif_add(&lwip_netif,&ipaddr,&netmask,&gw,NULL,&ethernetif_init,&tcpip_input);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	sys_arch_unprotect(p);  //ï¿½Ë³ï¿½ï¿½Ù½ï¿½ï¿½ï¿½
 	
-	if(Netif_Init_Flag==NULL)return 3;//Íø¿¨Ìí¼ÓÊ§°Ü 
-	else//Íø¿ÚÌí¼Ó³É¹¦ºó,ÉèÖÃnetifÎªÄ¬ÈÏÖµ,²¢ÇÒ´ò¿ªnetifÍø¿Ú
+	if(Netif_Init_Flag==NULL)return 3;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½ 
+	else//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó³É¹ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½netifÎªÄ¬ï¿½ï¿½Öµ,ï¿½ï¿½ï¿½Ò´ï¿½netifï¿½ï¿½ï¿½ï¿½
 	{
-		netif_set_default(&lwip_netif); //ÉèÖÃnetifÎªÄ¬ÈÏÍø¿Ú
-		netif_set_up(&lwip_netif);		//´ò¿ªnetifÍø¿Ú
+		netif_set_default(&lwip_netif); //ï¿½ï¿½ï¿½ï¿½netifÎªÄ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		netif_set_up(&lwip_netif);		//ï¿½ï¿½netifï¿½ï¿½ï¿½ï¿½
 	}
-	return 0;//²Ù×÷OK.
+	return 0;//ï¿½ï¿½ï¿½ï¿½OK.
 } 
 
-//Èç¹ûÊ¹ÓÃDHCPµÄ»°
+//ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½DHCPï¿½Ä»ï¿½
 #if LWIP_DHCP			
-//´´½¨DHCPÈÎÎñ
+//ï¿½ï¿½ï¿½ï¿½DHCPï¿½ï¿½ï¿½ï¿½
 void lwip_comm_dhcp_creat(void)
 {
-	taskENTER_CRITICAL();      			//½øÈëÁÙ½çÇø
-	//´´½¨DHCPÈÎÎñ 
+	taskENTER_CRITICAL();      			//ï¿½ï¿½ï¿½ï¿½ï¿½Ù½ï¿½ï¿½ï¿½
+	//ï¿½ï¿½ï¿½ï¿½DHCPï¿½ï¿½ï¿½ï¿½ 
 	xTaskCreate((TaskFunction_t )lwip_dhcp_task,     	
               (const char*    )"lwip_dhcp_task",   	
               (uint16_t       )LWIP_DHCP_STK_SIZE, 
               (void*          )NULL,				
               (UBaseType_t    )LWIP_DHCP_TASK_PRIO,	
               (TaskHandle_t*  )&LWIP_DHCP_TASK_Handler);  
-	taskEXIT_CRITICAL();            //ÍË³öÁÙ½çÇø
+	taskEXIT_CRITICAL();            //ï¿½Ë³ï¿½ï¿½Ù½ï¿½ï¿½ï¿½
 }
-//É¾³ýDHCPÈÎÎñ
+//É¾ï¿½ï¿½DHCPï¿½ï¿½ï¿½ï¿½
 void lwip_comm_dhcp_delete(void)
 {
-	dhcp_stop(&lwip_netif); 		    		 //¹Ø±ÕDHCP
-	vTaskDelete(LWIP_DHCP_TASK_Handler); //É¾³ýDHCPÈÎÎñ
+	dhcp_stop(&lwip_netif); 		    		 //ï¿½Ø±ï¿½DHCP
+	vTaskDelete(LWIP_DHCP_TASK_Handler); //É¾ï¿½ï¿½DHCPï¿½ï¿½ï¿½ï¿½
 }
-//DHCP´¦ÀíÈÎÎñ
+//DHCPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void lwip_dhcp_task(void *pvParameters)
 {
 	u32 ip=0,netmask=0,gw=0;
-	dhcp_start(&lwip_netif);    //¿ªÆôDHCP
-	lwipdev.dhcpstatus = 0;     //ÕýÔÚDHCP 
-	printf("ÕýÔÚ²éÕÒDHCP·þÎñÆ÷,ÇëÉÔµÈ...........\r\n");  	
+	dhcp_start(&lwip_netif);    //ï¿½ï¿½ï¿½ï¿½DHCP
+	lwipdev.dhcpstatus = 0;     //ï¿½ï¿½ï¿½ï¿½DHCP 
+	printf("DHCP is starting...\r\n");  	
 	while(1)
 	{
-		printf("ÕýÔÚ»ñÈ¡µØÖ·...\r\n");
-		ip=lwip_netif.ip_addr.addr;			//¶ÁÈ¡ÐÂIPµØÖ·
-		netmask=lwip_netif.netmask.addr;//¶ÁÈ¡×ÓÍøÑÚÂë
-		gw=lwip_netif.gw.addr;					//¶ÁÈ¡Ä¬ÈÏÍø¹Ø 
-		if(ip!=0)												//µ±ÕýÈ·»ñÈ¡µ½IPµØÖ·µÄÊ±ºò
+		printf("DHCP is running...\r\n");
+		ip=lwip_netif.ip_addr.addr;			//ï¿½ï¿½È¡ï¿½ï¿½IPï¿½ï¿½Ö·
+		netmask=lwip_netif.netmask.addr;//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		gw=lwip_netif.gw.addr;					//ï¿½ï¿½È¡Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+		if(ip!=0)												//ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½È¡ï¿½ï¿½IPï¿½ï¿½Ö·ï¿½ï¿½Ê±ï¿½ï¿½
 		{
-			lwipdev.dhcpstatus=2;	//DHCP³É¹¦
-			printf("Íø¿¨enµÄMACµØÖ·Îª:................%d.%d.%d.%d.%d.%d\r\n",lwipdev.mac[0],lwipdev.mac[1],lwipdev.mac[2],lwipdev.mac[3],lwipdev.mac[4],lwipdev.mac[5]);
-		  //½âÎö³öÍ¨¹ýDHCP»ñÈ¡µ½µÄIPµØÖ·
+			lwipdev.dhcpstatus=2;	//DHCPï¿½É¹ï¿½
+			printf("DHCP MAC:................%d.%d.%d.%d.%d.%d\r\n",lwipdev.mac[0],lwipdev.mac[1],lwipdev.mac[2],lwipdev.mac[3],lwipdev.mac[4],lwipdev.mac[5]);
+		  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½DHCPï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½IPï¿½ï¿½Ö·
 			lwipdev.ip[3]=(uint8_t)(ip>>24); 
 			lwipdev.ip[2]=(uint8_t)(ip>>16);
 			lwipdev.ip[1]=(uint8_t)(ip>>8);
 			lwipdev.ip[0]=(uint8_t)(ip);
-			printf("Í¨¹ýDHCP»ñÈ¡µ½IPµØÖ·..............%d.%d.%d.%d\r\n",lwipdev.ip[0],lwipdev.ip[1],lwipdev.ip[2],lwipdev.ip[3]);
-			//½âÎöÍ¨¹ýDHCP»ñÈ¡µ½µÄ×ÓÍøÑÚÂëµØÖ·
+			printf("DHCP IP ADRESS Ö·..............%d.%d.%d.%d\r\n",lwipdev.ip[0],lwipdev.ip[1],lwipdev.ip[2],lwipdev.ip[3]);
+			//ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½DHCPï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
 			lwipdev.netmask[3]=(uint8_t)(netmask>>24);
 			lwipdev.netmask[2]=(uint8_t)(netmask>>16);
 			lwipdev.netmask[1]=(uint8_t)(netmask>>8);
 			lwipdev.netmask[0]=(uint8_t)(netmask);
-			printf("Í¨¹ýDHCP»ñÈ¡µ½×ÓÍøÑÚÂë............%d.%d.%d.%d\r\n",lwipdev.netmask[0],lwipdev.netmask[1],lwipdev.netmask[2],lwipdev.netmask[3]);
-			//½âÎö³öÍ¨¹ýDHCP»ñÈ¡µ½µÄÄ¬ÈÏÍø¹Ø
+			printf("DHCP NETWASK............%d.%d.%d.%d\r\n",lwipdev.netmask[0],lwipdev.netmask[1],lwipdev.netmask[2],lwipdev.netmask[3]);
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½DHCPï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			lwipdev.gateway[3]=(uint8_t)(gw>>24);
 			lwipdev.gateway[2]=(uint8_t)(gw>>16);
 			lwipdev.gateway[1]=(uint8_t)(gw>>8);
 			lwipdev.gateway[0]=(uint8_t)(gw);
-			printf("Í¨¹ýDHCP»ñÈ¡µ½µÄÄ¬ÈÏÍø¹Ø..........%d.%d.%d.%d\r\n",lwipdev.gateway[0],lwipdev.gateway[1],lwipdev.gateway[2],lwipdev.gateway[3]);
+			printf("DHCP GATEWAY..........%d.%d.%d.%d\r\n",lwipdev.gateway[0],lwipdev.gateway[1],lwipdev.gateway[2],lwipdev.gateway[3]);
 			break;
-		}else if(lwip_netif.dhcp->tries>LWIP_MAX_DHCP_TRIES) //Í¨¹ýDHCP·þÎñ»ñÈ¡IPµØÖ·Ê§°Ü,ÇÒ³¬¹ý×î´ó³¢ÊÔ´ÎÊý
+		}else if(lwip_netif.dhcp->tries>LWIP_MAX_DHCP_TRIES) //Í¨ï¿½ï¿½DHCPï¿½ï¿½ï¿½ï¿½ï¿½È¡IPï¿½ï¿½Ö·Ê§ï¿½ï¿½,ï¿½Ò³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½
 		{
-			lwipdev.dhcpstatus=0XFF;//DHCP³¬Ê±Ê§°Ü.
-			//Ê¹ÓÃ¾²Ì¬IPµØÖ·
+			lwipdev.dhcpstatus=0XFF;//DHCPï¿½ï¿½Ê±Ê§ï¿½ï¿½.
+			//Ê¹ï¿½Ã¾ï¿½Ì¬IPï¿½ï¿½Ö·
 			IP4_ADDR(&(lwip_netif.ip_addr),lwipdev.ip[0],lwipdev.ip[1],lwipdev.ip[2],lwipdev.ip[3]);
 			IP4_ADDR(&(lwip_netif.netmask),lwipdev.netmask[0],lwipdev.netmask[1],lwipdev.netmask[2],lwipdev.netmask[3]);
 			IP4_ADDR(&(lwip_netif.gw),lwipdev.gateway[0],lwipdev.gateway[1],lwipdev.gateway[2],lwipdev.gateway[3]);
-			printf("DHCP·þÎñ³¬Ê±,Ê¹ÓÃ¾²Ì¬IPµØÖ·!\r\n");
-			printf("Íø¿¨enµÄMACµØÖ·Îª:................%d.%d.%d.%d.%d.%d\r\n",lwipdev.mac[0],lwipdev.mac[1],lwipdev.mac[2],lwipdev.mac[3],lwipdev.mac[4],lwipdev.mac[5]);
-			printf("¾²Ì¬IPµØÖ·........................%d.%d.%d.%d\r\n",lwipdev.ip[0],lwipdev.ip[1],lwipdev.ip[2],lwipdev.ip[3]);
-			printf("×ÓÍøÑÚÂë..........................%d.%d.%d.%d\r\n",lwipdev.netmask[0],lwipdev.netmask[1],lwipdev.netmask[2],lwipdev.netmask[3]);
-			printf("Ä¬ÈÏÍø¹Ø..........................%d.%d.%d.%d\r\n",lwipdev.gateway[0],lwipdev.gateway[1],lwipdev.gateway[2],lwipdev.gateway[3]);
+			printf("DHCP is sucessful!\r\n");
+			printf("MAC::................%d.%d.%d.%d.%d.%d\r\n",lwipdev.mac[0],lwipdev.mac[1],lwipdev.mac[2],lwipdev.mac[3],lwipdev.mac[4],lwipdev.mac[5]);
+			printf("IP::........................%d.%d.%d.%d\r\n",lwipdev.ip[0],lwipdev.ip[1],lwipdev.ip[2],lwipdev.ip[3]);
+			printf("NETMASK::..........................%d.%d.%d.%d\r\n",lwipdev.netmask[0],lwipdev.netmask[1],lwipdev.netmask[2],lwipdev.netmask[3]);
+			printf("GATEWAY::..........................%d.%d.%d.%d\r\n",lwipdev.gateway[0],lwipdev.gateway[1],lwipdev.gateway[2],lwipdev.gateway[3]);
 			break;
 		}
-		delay_xms(250); //ÑÓÊ±250ms
+		delay_xms(250); //ï¿½ï¿½Ê±250ms
 	}
-	lwip_comm_dhcp_delete(); //É¾³ýDHCPÈÎÎñ 
+	lwip_comm_dhcp_delete(); //É¾ï¿½ï¿½DHCPï¿½ï¿½ï¿½ï¿½ 
 }
 #endif 

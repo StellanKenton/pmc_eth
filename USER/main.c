@@ -18,6 +18,7 @@
 #include "lwip/sockets.h"
 #include "lwip/inet.h"
 #include <string.h>
+#include <errno.h>
 #include "SEGGER_RTT.h"
 
 //ALIENTEK ̽����STM32F407������
@@ -118,21 +119,14 @@ int main(void)
 	my_mem_init(SRAMCCM);	  							//��ʼ��CCM�ڴ��
 	
 	POINT_COLOR = RED; 		
-	LCD_ShowString(30,30,200,16,16,"Explorer STM32F4");
-	LCD_ShowString(30,50,200,16,16,"Ethernet lwIP Test");
-	LCD_ShowString(30,70,200,16,16,"ATOM@ALIENTEK");
-	LCD_ShowString(30,90,200,16,16,"2018-10-22  17:00"); 	
   
 	while(lwip_comm_init()) //lwip��ʼ��
 	{
-		LCD_ShowString(30,110,200,20,16,"LWIP Init Falied!");   //lwip��ʼ��ʧ��
+        printf("LWIP initialization failed! Retrying...\r\n");
 		delay_ms(1200);
-		LCD_Fill(30,110,230,130,WHITE); //�����ʾ
-		LCD_ShowString(30,110,200,16,16,"Retrying...");
 	}
-	LCD_ShowString(30,110,200,20,16,"LWIP Init Success!");    //lwip��ʼ���ɹ�
-	
-	//������ʼ����
+	printf("LWIP initialization successful!\r\n");
+
 	xTaskCreate((TaskFunction_t )start_task,            //������
 			  (const char*    )"start_task",          	//��������
 			  (uint16_t       )START_STK_SIZE,        	//�����ջ��С
@@ -251,6 +245,12 @@ void tcp_server_task(void *pvParameters)
 	int opt = 1;
 	setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 	
+	// 设置SO_LINGER选项，确保关闭时立即释放资源
+	struct linger linger_opt;
+	linger_opt.l_onoff = 1;   // 启用linger
+	linger_opt.l_linger = 0;  // 超时时间为0，立即关闭
+	setsockopt(server_sock, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt));
+	
 	// 绑定地址和端口
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
@@ -291,6 +291,14 @@ void tcp_server_task(void *pvParameters)
 			continue;
 		}
 		
+		// 设置client socket的SO_LINGER选项
+		setsockopt(client_sock, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt));
+		
+		// 设置接收超时，避免长时间阻塞
+		int timeout_ms = 100;  // 100ms超时
+		setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, &timeout_ms, sizeof(timeout_ms));
+		setsockopt(client_sock, SOL_SOCKET, SO_SNDTIMEO, &timeout_ms, sizeof(timeout_ms));
+		
 		// 设置socket为非阻塞模式，以便同时处理串口和TCP数据
 		unsigned long flags = 1;
 		ioctlsocket(client_sock, FIONBIO, &flags);
@@ -314,6 +322,9 @@ void tcp_server_task(void *pvParameters)
 					if(ret < 0)
 					{
 						printf("TCP Server: Failed to send UART data, err=%d\r\n", ret);
+						// 先shutdown再close，确保资源完全释放
+						shutdown(client_sock, SHUT_RDWR);
+						vTaskDelay(10);  // 短暂延时让LwIP处理
 						close(client_sock);
 						break;  // 退出内层循环，等待下一个连接
 					}
@@ -326,9 +337,15 @@ void tcp_server_task(void *pvParameters)
 			
 			// 接收TCP数据（非阻塞）
 			recv_len = recv(client_sock, recv_buf, sizeof(recv_buf) - 1, 0);
-			
+			// if(recv_len == -1) {
+            //     shutdown(client_sock, SHUT_RDWR);
+            //     vTaskDelay(10);  // 短暂延时让LwIP处理
+            //     close(client_sock);
+            //     break;  // 退出内层循环，等待下一个连接
+            // }
 			if(recv_len > 0)
 			{
+				
 				// 确保字符串以null结尾
 				recv_buf[recv_len] = '\0';
 				
@@ -353,6 +370,9 @@ void tcp_server_task(void *pvParameters)
 				if(ret < 0)
 				{
 					printf("TCP Server: send error, err=%d\r\n", ret);
+					// 先shutdown再close，确保资源完全释放
+					shutdown(client_sock, SHUT_RDWR);
+					vTaskDelay(10);  // 短暂延时让LwIP处理
 					close(client_sock);
 					break;  // 退出内层循环，等待下一个连接
 				}
@@ -360,15 +380,20 @@ void tcp_server_task(void *pvParameters)
 			}
 			else if(recv_len == 0)
 			{
-				// 连接关闭
-				printf("TCP Server: Client disconnected\r\n");
-				close(client_sock);
-				break;  // 退出内层循环，等待下一个连接
+					printf("TCP Server: Connection error, closing socket\r\n");
+					// 先shutdown再close，确保资源完全释放
+					shutdown(client_sock, SHUT_RDWR);
+					vTaskDelay(10);  // 短暂延时让LwIP处理
+					close(client_sock);
+					break;  // 退出内层循环，等待下一个连接
 			}
-			// recv_len < 0 表示没有数据或错误，继续循环
 			
 			// 短暂延时，避免CPU占用过高
 			vTaskDelay(10);
 		}
+		
+		// 连接关闭后，额外延时确保LwIP完全清理资源
+		printf("TCP Server: Waiting for resource cleanup...\r\n");
+		vTaskDelay(100);  // 增加延时到100ms，确保LwIP完全清理
 	}
 }

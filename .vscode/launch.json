@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "d:/Space/Work/ethok/STM32F4-FreeRTOS-LwIP-master/STM32F4-FreeRTOS-LwIP-master/LWIP/lwip_app/lwip_comm",
-      "program": "d:/Space/Work/ethok/STM32F4-FreeRTOS-LwIP-master/STM32F4-FreeRTOS-LwIP-master/LWIP/lwip_app/lwip_comm/build/Debug/outDebug",
+      "cwd": "d:/Space/Work/ethok/STM32F4-FreeRTOS-LwIP-master/STM32F4-FreeRTOS-LwIP-master/USER",
+      "program": "d:/Space/Work/ethok/STM32F4-FreeRTOS-LwIP-master/STM32F4-FreeRTOS-LwIP-master/USER/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
