@@ -280,7 +280,7 @@ void tcp_server_task(void *pvParameters)
 	if(server_sock < 0)
 	{
 		printf("TCP Server: Failed to create socket, err=%d\r\n", server_sock);
-		vTaskDelete(NULL);
+		vTaskDelete(NULL);	
 		return;
 	}
 	
