@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\USER;..\FWLIB\STM32F4xx_StdPeriph_Driver\inc;..\FWLIB\STM32F4x7_ETH_Driver\inc;..\FreeRTOS\include;..\FreeRTOS\portable\RVDS\ARM_CM4F;..\MALLOC;..\HARDWARE\LED;..\HARDWARE\TIMER;..\HARDWARE\LCD;..\HARDWARE\KEY;..\HARDWARE\BEEP;..\HARDWARE\EXTI;..\HARDWARE\ETHERNET;..\LWIP\lwip-1.4.1\src\include;..\LWIP\lwip-1.4.1\src\include\ipv4;..\LWIP\lwip-1.4.1\src\include\netif;..\LWIP;..\LWIP\arch;..\LWIP\lwip_app\lwip_comm;..\USMART;..\HARDWARE\SRAM;..\OPCUA\arch\common;..\OPCUA\arch;..\OPCUA\arch\freertosLWIP;..\OPCUA\include;..\OPCUA\deps;..\OPCUA\src;..\OPCUA\src\server;..\SEGGER</IncludePath>
+              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\USER;..\FWLIB\STM32F4xx_StdPeriph_Driver\inc;..\FWLIB\STM32F4x7_ETH_Driver\inc;..\FreeRTOS\include;..\FreeRTOS\portable\RVDS\ARM_CM4F;..\MALLOC;..\HARDWARE\LED;..\HARDWARE\TIMER;..\HARDWARE\LCD;..\HARDWARE\KEY;..\HARDWARE\BEEP;..\HARDWARE\EXTI;..\HARDWARE\ETHERNET;..\LWIP\lwip-1.4.1\src\include;..\LWIP\lwip-1.4.1\src\include\ipv4;..\LWIP\lwip-1.4.1\src\include\netif;..\LWIP;..\LWIP\arch;..\LWIP\lwip_app\lwip_comm;..\USMART;..\HARDWARE\SRAM;..\OPCUA\arch\common;..\OPCUA\arch;..\OPCUA\arch\freertosLWIP;..\OPCUA\include;..\OPCUA\deps;..\OPCUA\src;..\OPCUA\src\server;..\SEGGER;..\ETH</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -828,6 +828,21 @@
               <FileName>SEGGER_RTT_printf.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SEGGER\SEGGER_RTT_printf.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>ETH</GroupName>
+          <Files>
+            <File>
+              <FileName>EthernetDevice.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ETH\EthernetDevice.c</FilePath>
+            </File>
+            <File>
+              <FileName>Iot_Ethernet.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ETH\Iot_Ethernet.c</FilePath>
             </File>
           </Files>
         </Group>

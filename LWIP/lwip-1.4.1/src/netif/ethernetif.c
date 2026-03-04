@@ -3,62 +3,46 @@
 #include "lwip_comm.h" 
 #include "netif/etharp.h"  
 #include "string.h"  
-
-//////////////////////////////////////////////////////////////////////////////////	 
-//±¾³ÌÐòÖ»¹©Ñ§Ï°Ê¹ÓÃ£¬Î´¾­×÷ÕßÐí¿É£¬²»µÃÓÃÓÚÆäËüÈÎºÎÓÃÍ¾
-//ALIENTEK STM32F407¿ª·¢°å
-//ethernetif.c ´úÂë	   
-//ÕýµãÔ­×Ó@ALIENTEK
-//¼¼ÊõÂÛÌ³:www.openedv.com
-//´´½¨ÈÕÆÚ:2014/8/15
-//°æ±¾£ºV1.0
-//°æÈ¨ËùÓÐ£¬µÁ°æ±Ø¾¿¡£
-//Copyright(C) ¹ãÖÝÊÐÐÇÒíµç×Ó¿Æ¼¼ÓÐÏÞ¹«Ë¾ 2009-2019
-//All rights reserved									  
-//*******************************************************************************
-//ÐÞ¸ÄÐÅÏ¢
-//ÎÞ
-////////////////////////////////////////////////////////////////////////////////// 	   
  
  
-//ÓÉethernetif_init()µ÷ÓÃÓÃÓÚ³õÊ¼»¯Ó²¼þ
-//netif:Íø¿¨½á¹¹ÌåÖ¸Õë 
-//·µ»ØÖµ:ERR_OK,Õý³£
-//       ÆäËû,Ê§°Ü
+//ï¿½ï¿½ethernetif_init()ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú³ï¿½Ê¼ï¿½ï¿½Ó²ï¿½ï¿½
+//netif:ï¿½ï¿½ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½ 
+//ï¿½ï¿½ï¿½ï¿½Öµ:ERR_OK,ï¿½ï¿½ï¿½ï¿½
+//       ï¿½ï¿½ï¿½ï¿½,Ê§ï¿½ï¿½
 static err_t low_level_init(struct netif *netif)
 {
 #ifdef CHECKSUM_BY_HARDWARE
 	int i; 
 #endif 
-	netif->hwaddr_len = ETHARP_HWADDR_LEN; //ÉèÖÃMACµØÖ·³¤¶È,Îª6¸ö×Ö½Ú
-	//³õÊ¼»¯MACµØÖ·,ÉèÖÃÊ²Ã´µØÖ·ÓÉÓÃ»§×Ô¼ºÉèÖÃ,µ«ÊÇ²»ÄÜÓëÍøÂçÖÐÆäËûÉè±¸MACµØÖ·ÖØ¸´
+	netif->hwaddr_len = ETHARP_HWADDR_LEN; //ï¿½ï¿½ï¿½ï¿½MACï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½,Îª6ï¿½ï¿½ï¿½Ö½ï¿½
+	//ï¿½ï¿½Ê¼ï¿½ï¿½MACï¿½ï¿½Ö·,ï¿½ï¿½ï¿½ï¿½Ê²Ã´ï¿½ï¿½Ö·ï¿½ï¿½ï¿½Ã»ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è±¸MACï¿½ï¿½Ö·ï¿½Ø¸ï¿½
 	netif->hwaddr[0]=lwipdev.mac[0]; 
 	netif->hwaddr[1]=lwipdev.mac[1]; 
 	netif->hwaddr[2]=lwipdev.mac[2];
 	netif->hwaddr[3]=lwipdev.mac[3];
 	netif->hwaddr[4]=lwipdev.mac[4];
 	netif->hwaddr[5]=lwipdev.mac[5];
-	netif->mtu=1500; //×î´óÔÊÐí´«Êäµ¥Ôª,ÔÊÐí¸ÃÍø¿¨¹ã²¥ºÍARP¹¦ÄÜ
-	//²¢ÇÒ¸ÃÍø¿¨ÔÊÐíÓÐÓ²¼þÁ´Â·Á¬½Ó
+	netif->mtu=1500; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½äµ¥Ôª,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã²¥ï¿½ï¿½ARPï¿½ï¿½ï¿½ï¿½
+	//ï¿½ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½
 	netif->flags = NETIF_FLAG_BROADCAST|NETIF_FLAG_ETHARP|NETIF_FLAG_LINK_UP;
 	
-	ETH_MACAddressConfig(ETH_MAC_Address0, netif->hwaddr); //ÏòSTM32F4µÄMACµØÖ·¼Ä´æÆ÷ÖÐÐ´ÈëMACµØÖ·
+	ETH_MACAddressConfig(ETH_MAC_Address0, netif->hwaddr); //ï¿½ï¿½STM32F4ï¿½ï¿½MACï¿½ï¿½Ö·ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½MACï¿½ï¿½Ö·
 	ETH_DMATxDescChainInit(DMATxDscrTab, Tx_Buff, ETH_TXBUFNB);
 	ETH_DMARxDescChainInit(DMARxDscrTab, Rx_Buff, ETH_RXBUFNB);
-#ifdef CHECKSUM_BY_HARDWARE 	//Ê¹ÓÃÓ²¼þÖ¡Ð£Ñé
-	for(i=0;i<ETH_TXBUFNB;i++)	//Ê¹ÄÜTCP,UDPºÍICMPµÄ·¢ËÍÖ¡Ð£Ñé,TCP,UDPºÍICMPµÄ½ÓÊÕÖ¡Ð£ÑéÔÚDMAÖÐÅäÖÃÁË
+#ifdef CHECKSUM_BY_HARDWARE 	//Ê¹ï¿½ï¿½Ó²ï¿½ï¿½Ö¡Ð£ï¿½ï¿½
+	for(i=0;i<ETH_TXBUFNB;i++)	//Ê¹ï¿½ï¿½TCP,UDPï¿½ï¿½ICMPï¿½Ä·ï¿½ï¿½ï¿½Ö¡Ð£ï¿½ï¿½,TCP,UDPï¿½ï¿½ICMPï¿½Ä½ï¿½ï¿½ï¿½Ö¡Ð£ï¿½ï¿½ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	{
 		ETH_DMATxDescChecksumInsertionConfig(&DMATxDscrTab[i], ETH_DMATxDesc_ChecksumTCPUDPICMPFull);
 	}
 #endif
-	ETH_Start(); //¿ªÆôMACºÍDMA				
+	ETH_Start(); //ï¿½ï¿½ï¿½ï¿½MACï¿½ï¿½DMA				
 	return ERR_OK;
 } 
-//ÓÃÓÚ·¢ËÍÊý¾Ý°üµÄ×îµ×²ãº¯Êý(lwipÍ¨¹ýnetif->linkoutputÖ¸Ïò¸Ãº¯Êý)
-//netif:Íø¿¨½á¹¹ÌåÖ¸Õë
-//p:pbufÊý¾Ý½á¹¹ÌåÖ¸Õë
-//·µ»ØÖµ:ERR_OK,·¢ËÍÕý³£
-//       ERR_MEM,·¢ËÍÊ§°Ü
+//ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý°ï¿½ï¿½ï¿½ï¿½ï¿½×²ãº¯ï¿½ï¿½(lwipÍ¨ï¿½ï¿½netif->linkoutputÖ¸ï¿½ï¿½Ãºï¿½ï¿½ï¿½)
+//netif:ï¿½ï¿½ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½
+//p:pbufï¿½ï¿½ï¿½Ý½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:ERR_OK,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//       ERR_MEM,ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½
 static err_t low_level_output(struct netif *netif, struct pbuf *p)
 {
 	u8 res;
@@ -71,12 +55,12 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 		l=l+q->len;
 	} 
 	res=ETH_Tx_Packet(l); 
-	if(res==ETH_ERROR)return ERR_MEM;//·µ»Ø´íÎó×´Ì¬
+	if(res==ETH_ERROR)return ERR_MEM;//ï¿½ï¿½ï¿½Ø´ï¿½ï¿½ï¿½×´Ì¬
 	return ERR_OK;
 } 
-//ÓÃÓÚ½ÓÊÕÊý¾Ý°üµÄ×îµ×²ãº¯Êý
-//neitif:Íø¿¨½á¹¹ÌåÖ¸Õë
-//·µ»ØÖµ:pbufÊý¾Ý½á¹¹ÌåÖ¸Õë
+//ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý°ï¿½ï¿½ï¿½ï¿½ï¿½×²ãº¯ï¿½ï¿½
+//neitif:ï¿½ï¿½ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:pbufï¿½ï¿½ï¿½Ý½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½
 static struct pbuf * low_level_input(struct netif *netif)
 {  
 	struct pbuf *p, *q;
@@ -86,9 +70,9 @@ static struct pbuf * low_level_input(struct netif *netif)
 	u8 *buffer;
 	p = NULL;
 	frame=ETH_Rx_Packet();
-	len=frame.length;//µÃµ½°ü´óÐ¡
-	buffer=(u8 *)frame.buffer;//µÃµ½°üÊý¾ÝµØÖ· 
-	p=pbuf_alloc(PBUF_RAW,len,PBUF_POOL);//pbufsÄÚ´æ³Ø·ÖÅäpbuf
+	len=frame.length;//ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
+	buffer=(u8 *)frame.buffer;//ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½Ö· 
+	p=pbuf_alloc(PBUF_RAW,len,PBUF_POOL);//pbufsï¿½Ú´ï¿½Ø·ï¿½ï¿½ï¿½pbuf
 	if(p!=NULL)
 	{
 		for(q=p;q!=NULL;q=q->next)
@@ -97,18 +81,18 @@ static struct pbuf * low_level_input(struct netif *netif)
 			l=l+q->len;
 		}    
 	}
-	frame.descriptor->Status=ETH_DMARxDesc_OWN;//ÉèÖÃRxÃèÊö·ûOWNÎ»,bufferÖØ¹éETH DMA 
-	if((ETH->DMASR&ETH_DMASR_RBUS)!=(u32)RESET)//µ±Rx Buffer²»¿ÉÓÃÎ»(RBUS)±»ÉèÖÃµÄÊ±ºò,ÖØÖÃËü.»Ö¸´´«Êä
+	frame.descriptor->Status=ETH_DMARxDesc_OWN;//ï¿½ï¿½ï¿½ï¿½Rxï¿½ï¿½ï¿½ï¿½ï¿½ï¿½OWNÎ»,bufferï¿½Ø¹ï¿½ETH DMA 
+	if((ETH->DMASR&ETH_DMASR_RBUS)!=(u32)RESET)//ï¿½ï¿½Rx Bufferï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»(RBUS)ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½Ê±ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½
 	{ 
-		ETH->DMASR=ETH_DMASR_RBUS;//ÖØÖÃETH DMA RBUSÎ» 
-		ETH->DMARPDR=0;//»Ö¸´DMA½ÓÊÕ
+		ETH->DMASR=ETH_DMASR_RBUS;//ï¿½ï¿½ï¿½ï¿½ETH DMA RBUSÎ» 
+		ETH->DMARPDR=0;//ï¿½Ö¸ï¿½DMAï¿½ï¿½ï¿½ï¿½
 	}
 	return p;
 } 
-//Íø¿¨½ÓÊÕÊý¾Ý(lwipÖ±½Óµ÷ÓÃ)
-//netif:Íø¿¨½á¹¹ÌåÖ¸Õë
-//·µ»ØÖµ:ERR_OK,·¢ËÍÕý³£
-//       ERR_MEM,·¢ËÍÊ§°Ü
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(lwipÖ±ï¿½Óµï¿½ï¿½ï¿½)
+//netif:ï¿½ï¿½ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:ERR_OK,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//       ERR_MEM,ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½
 err_t ethernetif_input(struct netif *netif)
 {
 	err_t err;
@@ -124,21 +108,21 @@ err_t ethernetif_input(struct netif *netif)
 	} 
 	return err;
 } 
-//Ê¹ÓÃlow_level_init()º¯ÊýÀ´³õÊ¼»¯ÍøÂç
-//netif:Íø¿¨½á¹¹ÌåÖ¸Õë
-//·µ»ØÖµ:ERR_OK,Õý³£
-//       ÆäËû,Ê§°Ü
+//Ê¹ï¿½ï¿½low_level_init()ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//netif:ï¿½ï¿½ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½Ö¸ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½Öµ:ERR_OK,ï¿½ï¿½ï¿½ï¿½
+//       ï¿½ï¿½ï¿½ï¿½,Ê§ï¿½ï¿½
 err_t ethernetif_init(struct netif *netif)
 {
 	LWIP_ASSERT("netif!=NULL",(netif!=NULL));
 #if LWIP_NETIF_HOSTNAME			//LWIP_NETIF_HOSTNAME 
-	netif->hostname="lwip";  	//³õÊ¼»¯Ãû³Æ
+	netif->hostname="lwip";  	//ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif 
-	netif->name[0]=IFNAME0; 	//³õÊ¼»¯±äÁ¿netifµÄname×Ö¶Î
-	netif->name[1]=IFNAME1; 	//ÔÚÎÄ¼þÍâ¶¨ÒåÕâÀï²»ÓÃ¹ØÐÄ¾ßÌåÖµ
-	netif->output=etharp_output;//IP²ã·¢ËÍÊý¾Ý°üº¯Êý
-	netif->linkoutput=low_level_output;//ARPÄ£¿é·¢ËÍÊý¾Ý°üº¯Êý
-	low_level_init(netif); 		//µ×²ãÓ²¼þ³õÊ¼»¯º¯Êý
+	netif->name[0]=IFNAME0; 	//ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½netifï¿½ï¿½nameï¿½Ö¶ï¿½
+	netif->name[1]=IFNAME1; 	//ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½â¶¨ï¿½ï¿½ï¿½ï¿½ï¿½ï²»ï¿½Ã¹ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½Öµ
+	netif->output=etharp_output;//IPï¿½ã·¢ï¿½ï¿½ï¿½ï¿½ï¿½Ý°ï¿½ï¿½ï¿½ï¿½ï¿½
+	netif->linkoutput=low_level_output;//ARPÄ£ï¿½é·¢ï¿½ï¿½ï¿½ï¿½ï¿½Ý°ï¿½ï¿½ï¿½ï¿½ï¿½
+	low_level_init(netif); 		//ï¿½×²ï¿½Ó²ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	return ERR_OK;
 }
 

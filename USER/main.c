@@ -20,7 +20,8 @@
 #include <string.h>
 #include <errno.h>
 #include "SEGGER_RTT.h"
-
+#include "EthernetDevice.h"
+#include "Iot_Ethernet.h"
 //ALIENTEK ̽����STM32F407������
 //LWIP LWIP�޲���ϵͳ��ֲ����
 //����֧�֣�www.openedv.com
@@ -248,19 +249,25 @@ void led_task(void *pvParameters)
 //NetWork����
 void network_task(void *pvParameters)
 {
+	ETHERNET_STATE state;
 	while(1)
 	{
-		printf("NetWork task is running...\r\n");
-		vTaskDelay(1000);     							 //��ʱ1000ms
+		Ethernet_HardWareProcess();
+		state = Ethernet_GetState();
+		if(state == ETHERNET_READY_STATE)
+		{
+			EthernetTCPProcess();
+		}
+		vTaskDelay(10);     							 //��ʱ1000ms
  	}
 }
-
+ 
 //EthWork����
 void ethwork_task(void *pvParameters)
 {
 	while(1)
 	{
-		printf("EthWork task is running...\r\n");
+		
 		vTaskDelay(1500);     							 //��ʱ1500ms
  	}
 }

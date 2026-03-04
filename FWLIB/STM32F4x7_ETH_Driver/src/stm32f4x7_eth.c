@@ -167,54 +167,54 @@ void ETH_StructInit(ETH_InitTypeDef* ETH_InitStruct)
   /*------------------------   MAC Configuration   ---------------------------*/
   
   /* PHY Auto-negotiation enabled */
-  ETH_InitStruct->ETH_AutoNegotiation = ETH_AutoNegotiation_Enable; 			//Ê¹ÄÜ×ÔÊÊÓ¦Ä£Ê½       
+  ETH_InitStruct->ETH_AutoNegotiation = ETH_AutoNegotiation_Enable; 			//Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦Ä£Ê½       
   /* MAC watchdog enabled: cuts-off long frame */
-  ETH_InitStruct->ETH_Watchdog = ETH_Watchdog_Enable;										 	//Ê¹ÄÜ¿´ÃÅ¹·
+  ETH_InitStruct->ETH_Watchdog = ETH_Watchdog_Enable;										 	//Ê¹ï¿½Ü¿ï¿½ï¿½Å¹ï¿½
   /* MAC Jabber enabled in Half-duplex mode */					
-  ETH_InitStruct->ETH_Jabber = ETH_Jabber_Enable;       									//Ê¹ÄÜJabber                                                
+  ETH_InitStruct->ETH_Jabber = ETH_Jabber_Enable;       									//Ê¹ï¿½ï¿½Jabber                                                
   /* Ethernet interframe gap set to 96 bits */
-  ETH_InitStruct->ETH_InterFrameGap = ETH_InterFrameGap_96Bit;  					//ÉèÖÃÖ¡¼ä¸ôÎª96bit                                                                                                                          
+  ETH_InitStruct->ETH_InterFrameGap = ETH_InterFrameGap_96Bit;  					//ï¿½ï¿½ï¿½ï¿½Ö¡ï¿½ï¿½ï¿½Îª96bit                                                                                                                          
   /* Carrier Sense Enabled in Half-Duplex mode */ 
-  ETH_InitStruct->ETH_CarrierSense = ETH_CarrierSense_Enable; 						//°ëË«¹¤Ä£Ê½ÏÂÊ¹ÄÜÔØ²¨ÕìÌý¹¦ÄÜ                               
+  ETH_InitStruct->ETH_CarrierSense = ETH_CarrierSense_Enable; 						//ï¿½ï¿½Ë«ï¿½ï¿½Ä£Ê½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½Ø²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½                               
   /* PHY speed configured to 100Mbit/s */
-  ETH_InitStruct->ETH_Speed = ETH_Speed_100M; 														//PHY²ãËÙ¶ÈÎª100M
+  ETH_InitStruct->ETH_Speed = ETH_Speed_100M; 														//PHYï¿½ï¿½ï¿½Ù¶ï¿½Îª100M
   /* Receive own Frames in Half-Duplex mode enabled */
-  ETH_InitStruct->ETH_ReceiveOwn = ETH_ReceiveOwn_Enable;                	//°ëË«¹¤Ä£Ê½ÏÂÔÊÐí½ÓÊÕ own frame
+  ETH_InitStruct->ETH_ReceiveOwn = ETH_ReceiveOwn_Enable;                	//ï¿½ï¿½Ë«ï¿½ï¿½Ä£Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ own frame
   /* MAC MII loopback disabled */ 
-  ETH_InitStruct->ETH_LoopbackMode = ETH_LoopbackMode_Disable; 						//¹Ø±ÕMII½Ó¿ÚµÄ·´À¡¹¦ÄÜ             
+  ETH_InitStruct->ETH_LoopbackMode = ETH_LoopbackMode_Disable; 						//ï¿½Ø±ï¿½MIIï¿½Ó¿ÚµÄ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½             
   /* Full-Duplex mode selected */
-  ETH_InitStruct->ETH_Mode = ETH_Mode_FullDuplex;   											//Ê¹ÓÃÈ«Ë«¹¤Ä£Ê½                   
+  ETH_InitStruct->ETH_Mode = ETH_Mode_FullDuplex;   											//Ê¹ï¿½ï¿½È«Ë«ï¿½ï¿½Ä£Ê½                   
   /* IPv4 and TCP/UDP/ICMP frame Checksum Offload disabled */
-  ETH_InitStruct->ETH_ChecksumOffload = ETH_ChecksumOffload_Disable;   		//¹Ø±Õipv4ºÍTCP/UDP/ICMPµÄÖ¡Ð£ÑéºÍÐ¶ÔØ                                                          
+  ETH_InitStruct->ETH_ChecksumOffload = ETH_ChecksumOffload_Disable;   		//ï¿½Ø±ï¿½ipv4ï¿½ï¿½TCP/UDP/ICMPï¿½ï¿½Ö¡Ð£ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½                                                          
   /* Retry Transmission enabled for half-duplex mode */ 
-  ETH_InitStruct->ETH_RetryTransmission = ETH_RetryTransmission_Enable;   //¿ªÆô°ëË«¹¤Ä£Ê½ÏÂµÄÖØÊÔ´«Êä¹¦ÄÜ                                                                              
+  ETH_InitStruct->ETH_RetryTransmission = ETH_RetryTransmission_Enable;   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë«ï¿½ï¿½Ä£Ê½ï¿½Âµï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ä¹¦ï¿½ï¿½                                                                              
   /* Automatic PAD/CRC strip disabled*/
-  ETH_InitStruct->ETH_AutomaticPadCRCStrip = ETH_AutomaticPadCRCStrip_Disable;  //¹Ø±Õ×Ô¶¯È¥³ýPDA/CRC¹¦ÄÜ                                                        
+  ETH_InitStruct->ETH_AutomaticPadCRCStrip = ETH_AutomaticPadCRCStrip_Disable;  //ï¿½Ø±ï¿½ï¿½Ô¶ï¿½È¥ï¿½ï¿½PDA/CRCï¿½ï¿½ï¿½ï¿½                                                        
   /* half-duplex mode retransmission Backoff time_limit = 10 slot times*/ 
-  ETH_InitStruct->ETH_BackOffLimit = ETH_BackOffLimit_10;     						//ÉèÖÃ°ëË«¹¤Ä£Ê½ÏÂµÄ×î´óÖØ´«»ØÍËÊÂ¼þ10 slot times
+  ETH_InitStruct->ETH_BackOffLimit = ETH_BackOffLimit_10;     						//ï¿½ï¿½ï¿½Ã°ï¿½Ë«ï¿½ï¿½Ä£Ê½ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½10 slot times
   /* half-duplex mode Deferral check disabled */
-  ETH_InitStruct->ETH_DeferralCheck = ETH_DeferralCheck_Disable;          //¹Ø±Õ°ëË«¹¤Ä£Ê½ÏÂµÄÑÓÊ±¼ì²é¹¦ÄÜ                                                                                                      
+  ETH_InitStruct->ETH_DeferralCheck = ETH_DeferralCheck_Disable;          //ï¿½Ø±Õ°ï¿½Ë«ï¿½ï¿½Ä£Ê½ï¿½Âµï¿½ï¿½ï¿½Ê±ï¿½ï¿½é¹¦ï¿½ï¿½                                                                                                      
   /* Receive all frames disabled */ 
-  ETH_InitStruct->ETH_ReceiveAll = ETH_ReceiveAll_Disable;								//½ûÖ¹½ÓÊÕËùÓÐÖ¡
+  ETH_InitStruct->ETH_ReceiveAll = ETH_ReceiveAll_Disable;								//ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¡
   /* Source address filtering (on the optional MAC addresses) disabled */
-  ETH_InitStruct->ETH_SourceAddrFilter = ETH_SourceAddrFilter_Disable;   	//¹Ø±ÕMACµØÖ·µÄÔ´µØÖ·¹ýÂË¹¦ÄÜ
+  ETH_InitStruct->ETH_SourceAddrFilter = ETH_SourceAddrFilter_Disable;   	//ï¿½Ø±ï¿½MACï¿½ï¿½Ö·ï¿½ï¿½Ô´ï¿½ï¿½Ö·ï¿½ï¿½ï¿½Ë¹ï¿½ï¿½ï¿½
   /* Do not forward control frames that do not pass the address filtering */
   ETH_InitStruct->ETH_PassControlFrames = ETH_PassControlFrames_BlockAll; //
   /* Disable reception of Broadcast frames */
-  ETH_InitStruct->ETH_BroadcastFramesReception = ETH_BroadcastFramesReception_Disable;//½ûÖ¹½ÓÊÕËùÓÐµÄ¹ã²¥Ö¡
+  ETH_InitStruct->ETH_BroadcastFramesReception = ETH_BroadcastFramesReception_Disable;//ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÐµÄ¹ã²¥Ö¡
   /* Normal Destination address filtering (not reverse addressing) */
-  ETH_InitStruct->ETH_DestinationAddrFilter = ETH_DestinationAddrFilter_Normal;			//Õý³£µÄÔ¶¶ËµØÖ·¹ýÂË
+  ETH_InitStruct->ETH_DestinationAddrFilter = ETH_DestinationAddrFilter_Normal;			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½Ëµï¿½Ö·ï¿½ï¿½ï¿½ï¿½
   /* Promiscuous address filtering mode disabled */
-  ETH_InitStruct->ETH_PromiscuousMode = ETH_PromiscuousMode_Disable;			//¹Ø±Õ»ìºÏÄ£Ê½µÄµØÖ·¹ýÂË                                                            
+  ETH_InitStruct->ETH_PromiscuousMode = ETH_PromiscuousMode_Disable;			//ï¿½Ø±Õ»ï¿½ï¿½Ä£Ê½ï¿½Äµï¿½Ö·ï¿½ï¿½ï¿½ï¿½                                                            
   /* Perfect address filtering for multicast addresses */
-  ETH_InitStruct->ETH_MulticastFramesFilter = ETH_MulticastFramesFilter_Perfect;  //¶ÔÓÚ×é²¥µØÖ·Ê¹ÓÃÍêÃÀµØÖ·¹ýÂË   
+  ETH_InitStruct->ETH_MulticastFramesFilter = ETH_MulticastFramesFilter_Perfect;  //ï¿½ï¿½ï¿½ï¿½ï¿½é²¥ï¿½ï¿½Ö·Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½   
   /* Perfect address filtering for unicast addresses */
-  ETH_InitStruct->ETH_UnicastFramesFilter = ETH_UnicastFramesFilter_Perfect;     	//¶Ôµ¥²¥µØÖ·Ê¹ÓÃÍêÃÀµØÖ·¹ýÂË 
+  ETH_InitStruct->ETH_UnicastFramesFilter = ETH_UnicastFramesFilter_Perfect;     	//ï¿½Ôµï¿½ï¿½ï¿½ï¿½ï¿½Ö·Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ 
   /* Initialize hash table high and low regs */
-  ETH_InitStruct->ETH_HashTableHigh = 0x0;   											//³õÊ¼»¯HASH±íµÄ¸ßÎ»¼Ä´æÆ÷             
-  ETH_InitStruct->ETH_HashTableLow = 0x0;                     		//³õÊ¼»¯HASH±íµÄµÍÎ»Î»¼Ä´æÆ÷  
+  ETH_InitStruct->ETH_HashTableHigh = 0x0;   											//ï¿½ï¿½Ê¼ï¿½ï¿½HASHï¿½ï¿½ï¿½Ä¸ï¿½Î»ï¿½Ä´ï¿½ï¿½ï¿½             
+  ETH_InitStruct->ETH_HashTableLow = 0x0;                     		//ï¿½ï¿½Ê¼ï¿½ï¿½HASHï¿½ï¿½ï¿½Äµï¿½Î»Î»ï¿½Ä´ï¿½ï¿½ï¿½  
   /* Flow control config (flow control disabled)*/
-  ETH_InitStruct->ETH_PauseTime = 0x0;                 					//Á÷¿ØÅäÖÃ 
+  ETH_InitStruct->ETH_PauseTime = 0x0;                 					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
   ETH_InitStruct->ETH_ZeroQuantaPause = ETH_ZeroQuantaPause_Disable;            
   ETH_InitStruct->ETH_PauseLowThreshold = ETH_PauseLowThreshold_Minus4;         
   ETH_InitStruct->ETH_UnicastPauseFrameDetect = ETH_UnicastPauseFrameDetect_Disable;   
@@ -227,31 +227,31 @@ void ETH_StructInit(ETH_InitTypeDef* ETH_InitStruct)
   /*---------------------- DMA Configuration   -------------------------------*/
 
   /* Drops frames with with TCP/IP checksum errors */
-  ETH_InitStruct->ETH_DropTCPIPChecksumErrorFrame = ETH_DropTCPIPChecksumErrorFrame_Disable; //¹Ø±Õ¶ªÆúTCP/IP´íÎóÖ¡
+  ETH_InitStruct->ETH_DropTCPIPChecksumErrorFrame = ETH_DropTCPIPChecksumErrorFrame_Disable; //ï¿½Ø±Õ¶ï¿½ï¿½ï¿½TCP/IPï¿½ï¿½ï¿½ï¿½Ö¡
   /* Store and forward mode enabled for receive */
-  ETH_InitStruct->ETH_ReceiveStoreForward = ETH_ReceiveStoreForward_Enable;       //¿ªÆô½ÓÊÕÊý¾ÝµÄ´æ´¢×ª·¢¹¦ÄÜ
+  ETH_InitStruct->ETH_ReceiveStoreForward = ETH_ReceiveStoreForward_Enable;       //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÝµÄ´æ´¢×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   /* Flush received frame that created FIFO overflow */
   ETH_InitStruct->ETH_FlushReceivedFrame = ETH_FlushReceivedFrame_Enable; 
   /* Store and forward mode enabled for transmit */
-  ETH_InitStruct->ETH_TransmitStoreForward = ETH_TransmitStoreForward_Enable;   	//¿ªÆô·¢ËÍÄ£Ê½µÄ´æ´¢×ª·¢¹¦ÄÜ
+  ETH_InitStruct->ETH_TransmitStoreForward = ETH_TransmitStoreForward_Enable;   	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Ä´æ´¢×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   /* Threshold TXFIFO level set to 64 bytes (used when threshold mode is enabled) */
-  ETH_InitStruct->ETH_TransmitThresholdControl = ETH_TransmitThresholdControl_64Bytes;  //ÉèÖÃãÐÖµÄ£Ê½ÏÂµÄ·¢ËÍFIFOµÄãÐÖµÎª64×Ö½Ú
+  ETH_InitStruct->ETH_TransmitThresholdControl = ETH_TransmitThresholdControl_64Bytes;  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÖµÄ£Ê½ï¿½ÂµÄ·ï¿½ï¿½ï¿½FIFOï¿½ï¿½ï¿½ï¿½ÖµÎª64ï¿½Ö½ï¿½
   /* Disable forwarding frames with errors (short frames, CRC,...)*/
-  ETH_InitStruct->ETH_ForwardErrorFrames = ETH_ForwardErrorFrames_Disable;   //½ûÖ¹×ª·¢´íÎóÖ¡
+  ETH_InitStruct->ETH_ForwardErrorFrames = ETH_ForwardErrorFrames_Disable;   //ï¿½ï¿½Ö¹×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¡
   /* Disable undersized good frames */
-  ETH_InitStruct->ETH_ForwardUndersizedGoodFrames = ETH_ForwardUndersizedGoodFrames_Disable; //²»×ª·¢¹ýÐ¡µÄºÃÖ¡
+  ETH_InitStruct->ETH_ForwardUndersizedGoodFrames = ETH_ForwardUndersizedGoodFrames_Disable; //ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½Ð¡ï¿½Äºï¿½Ö¡
   /* Threshold RXFIFO level set to 64 bytes (used when Cut-through mode is enabled) */
-  ETH_InitStruct->ETH_ReceiveThresholdControl = ETH_ReceiveThresholdControl_64Bytes;    //ÉèÖÃÖ±Í¨Ä£Ê½ÏÂµÄ·¢ËÍFIFOãÐÖµÎª64×Ö½Ú                        
+  ETH_InitStruct->ETH_ReceiveThresholdControl = ETH_ReceiveThresholdControl_64Bytes;    //ï¿½ï¿½ï¿½ï¿½Ö±Í¨Ä£Ê½ï¿½ÂµÄ·ï¿½ï¿½ï¿½FIFOï¿½ï¿½ÖµÎª64ï¿½Ö½ï¿½                        
   /* Disable Operate on second frame (transmit a second frame to FIFO without 
   waiting status of previous frame*/                           
-  ETH_InitStruct->ETH_SecondFrameOperate = ETH_SecondFrameOperate_Disable;							//¹Ø±Õ´¦ÀíµÚ¶þÖ¡Êý¾Ý
+  ETH_InitStruct->ETH_SecondFrameOperate = ETH_SecondFrameOperate_Disable;							//ï¿½Ø±Õ´ï¿½ï¿½ï¿½ï¿½Ú¶ï¿½Ö¡ï¿½ï¿½ï¿½ï¿½
   /* DMA works on 32-bit aligned start source and destinations addresses */
-  ETH_InitStruct->ETH_AddressAlignedBeats = ETH_AddressAlignedBeats_Enable;						//¿ªÆôDMA´«ÊäµÄµØÖ·¶ÔÆë¹¦ÄÜ
+  ETH_InitStruct->ETH_AddressAlignedBeats = ETH_AddressAlignedBeats_Enable;						//ï¿½ï¿½ï¿½ï¿½DMAï¿½ï¿½ï¿½ï¿½Äµï¿½Ö·ï¿½ï¿½ï¿½ë¹¦ï¿½ï¿½
   /* Enabled Fixed Burst Mode (mix of INC4, INC8, INC16 and SINGLE DMA transactions */
-  ETH_InitStruct->ETH_FixedBurst = ETH_FixedBurst_Enable;    												//¿ªÆô¹Ì¶¨Í»·¢¹¦ÄÜ
+  ETH_InitStruct->ETH_FixedBurst = ETH_FixedBurst_Enable;    												//ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   /* DMA transfer max burst length = 32 beats = 32 x 32bits */
-  ETH_InitStruct->ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;    //DMA·¢ËÍµÄ×î´óÍ»·¢³¤¶ÈÎª32
-  ETH_InitStruct->ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;    //DMA½ÓÊÕµÄ×î´óÍ»·¢³¤¶ÈÎª32
+  ETH_InitStruct->ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;    //DMAï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª32
+  ETH_InitStruct->ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;    //DMAï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª32
   /* DMA Ring mode skip length = 0 */
   ETH_InitStruct->ETH_DescriptorSkipLength = 0x0; 
   /* Equal priority (round-robin) between transmit and receive DMA engines */
@@ -818,16 +818,16 @@ void ETH_MACAddressConfig(uint32_t MacAddr, uint8_t *Addr)
   assert_param(IS_ETH_MAC_ADDRESS0123(MacAddr));
   
   /* Calculate the selected MAC address high register */
-  tmpreg = ((uint32_t)Addr[5] << 8) | (uint32_t)Addr[4]; //¼ÆËã³öËùÑ¡ÔñµÄMACµØÖ·µÄ¸ßÎ»¼Ä´æÆ÷Öµ
-																												 //¼´ETH_MACA0HRµÄ16Î»Öµ
+  tmpreg = ((uint32_t)Addr[5] << 8) | (uint32_t)Addr[4]; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½MACï¿½ï¿½Ö·ï¿½Ä¸ï¿½Î»ï¿½Ä´ï¿½ï¿½ï¿½Öµ
+																												 //ï¿½ï¿½ETH_MACA0HRï¿½ï¿½16Î»Öµ
   /* Load the selected MAC address high register */
-  (*(__IO uint32_t *) (ETH_MAC_ADDR_HBASE + MacAddr)) = tmpreg; //½«¼ÆËã³öµÄ¸ßÎ»ÖµÐ´ÈëETH_MAC0HRÖÐ
+  (*(__IO uint32_t *) (ETH_MAC_ADDR_HBASE + MacAddr)) = tmpreg; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½Î»ÖµÐ´ï¿½ï¿½ETH_MAC0HRï¿½ï¿½
   /* Calculate the selected MAC address low register */
-	//¼ÆËã³öËùÑ¡ÔñµÄMACµØÖ·µÄµÚÎ»¼Ä´æÆ÷Öµ,¼´ETH_MACA0LRµÄ16Î»Öµ
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½MACï¿½ï¿½Ö·ï¿½Äµï¿½Î»ï¿½Ä´ï¿½ï¿½ï¿½Öµ,ï¿½ï¿½ETH_MACA0LRï¿½ï¿½16Î»Öµ
   tmpreg = ((uint32_t)Addr[3] << 24) | ((uint32_t)Addr[2] << 16) | ((uint32_t)Addr[1] << 8) | Addr[0];
  
   /* Load the selected MAC address low register */
-  (*(__IO uint32_t *) (ETH_MAC_ADDR_LBASE + MacAddr)) = tmpreg;//½«¼ÆËã³öµÄµÍÎ»ÖµÐ´ÈëETH_MAC0LRÖÐ
+  (*(__IO uint32_t *) (ETH_MAC_ADDR_LBASE + MacAddr)) = tmpreg;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½Î»ÖµÐ´ï¿½ï¿½ETH_MAC0LRï¿½ï¿½
 }
 
 
@@ -1792,7 +1792,7 @@ FlagStatus ETH_GetDMAFlagStatus(uint32_t ETH_DMA_FLAG)
 }
 
 /**
-  * @brief  Clears the ETHERNET’s DMA pending flag.
+  * @brief  Clears the ETHERNETï¿½s DMA pending flag.
   * @param  ETH_DMA_FLAG: specifies the flag to clear.
   *   This parameter can be any combination of the following values:
   *     @arg ETH_DMA_FLAG_NIS : Normal interrupt summary flag
@@ -1904,7 +1904,7 @@ ITStatus ETH_GetDMAITStatus(uint32_t ETH_DMA_IT)
 }
 
 /**
-  * @brief  Clears the ETHERNET’s DMA IT pending bit.
+  * @brief  Clears the ETHERNETï¿½s DMA IT pending bit.
   * @param  ETH_DMA_IT: specifies the interrupt pending bit to clear.
   *   This parameter can be any combination of the following values:
   *     @arg ETH_DMA_IT_NIS : Normal interrupt summary 

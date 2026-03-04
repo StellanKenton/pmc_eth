@@ -1,25 +1,25 @@
-// cc.h属于LWIP TCP/IP协议栈一部分
-// 作者: Adam Dunkels <adam@sics.se>
+// cc.h is part of the LWIP TCP/IP protocol stack
+// Author: Adam Dunkels <adam@sics.se>
 
 #ifndef __CC_H__
 #define __CC_H__
 
 #include "cpu.h"
 #include "stdio.h"
-#include "FreeRTOS.h"  //使用UCOS 要添加此头文件！
+#include "FreeRTOS.h"  //Include this header file when using UCOS
 
-//定义与平台无关的数据类型
-typedef unsigned   char    u8_t;  	//无符号8位整数  
-typedef signed     char    s8_t;   	//有符号8位整数 
-typedef unsigned   short   u16_t;  	//无符号16位整数
-typedef signed     short   s16_t;   //有符号16位整数
-typedef unsigned   long    u32_t;   //无符号32位整数
-typedef signed     long    s32_t;   //有符号32位整数
-typedef u32_t mem_ptr_t;            //内存地址型数据
-typedef int sys_prot_t;				//临界保护型数据
+//Platform-independent data types
+typedef unsigned   char    u8_t;  	//Unsigned 8-bit integer  
+typedef signed     char    s8_t;   	//Signed 8-bit integer 
+typedef unsigned   short   u16_t;  	//Unsigned 16-bit integer
+typedef signed     short   s16_t;   //Signed 16-bit integer
+typedef unsigned   long    u32_t;   //Unsigned 32-bit integer
+typedef signed     long    s32_t;   //Signed 32-bit integer
+typedef u32_t mem_ptr_t;            //Memory address type
+typedef int sys_prot_t;				//Critical section protection type
 
-//使用操作系统时的临界区保护，这里以UCOS II为例
-//当定义了OS_CRITICAL_METHOD时就说明使用了UCOS II
+//Critical section protection when using operating system, using UCOS II as example
+//When OS_CRITICAL_METHOD is defined, it means UCOS II is being used
 #if OS_CRITICAL_METHOD == 1
 #define SYS_ARCH_DECL_PROTECT(lev)
 #define SYS_ARCH_PROTECT(lev)		CPU_INT_DIS()
@@ -28,11 +28,11 @@ typedef int sys_prot_t;				//临界保护型数据
 
 #if OS_CRITICAL_METHOD == 3  
 #define SYS_ARCH_DECL_PROTECT(lev)	u32_t lev
-#define SYS_ARCH_PROTECT(lev)		lev = OS_CPU_SR_Save() 	//UCOS II中进入临界区,关中断
-#define SYS_ARCH_UNPROTECT(lev)		OS_CPU_SR_Restore(lev)	//UCOS II中退出A临界区，开中断 
+#define SYS_ARCH_PROTECT(lev)		lev = OS_CPU_SR_Save() 	//UCOS II enter critical section, disable interrupts
+#define SYS_ARCH_UNPROTECT(lev)		OS_CPU_SR_Restore(lev)	//UCOS II exit critical section, enable interrupts 
 #endif
 
-//根据不同的编译器定义一些符号
+//Define some macros based on different compilers
 #if defined (__ICCARM__)
 
 #define PACK_STRUCT_BEGIN
@@ -64,7 +64,7 @@ typedef int sys_prot_t;				//临界保护型数据
 
 #endif
 
-//LWIP用printf调试时使用到的一些类型
+//Some macros used when LWIP calls printf
 #define U16_F "4d"
 #define S16_F "4d"
 #define X16_F "4x"
@@ -72,7 +72,7 @@ typedef int sys_prot_t;				//临界保护型数据
 #define S32_F "8ld"
 #define X32_F "8lx"
 
-//宏定义
+//Macro definitions
 #ifndef LWIP_PLATFORM_ASSERT
 #define LWIP_PLATFORM_ASSERT(x) \
     do \
