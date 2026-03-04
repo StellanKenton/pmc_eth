@@ -50,11 +50,7 @@ u32 DHCPcoarseTimer=0;	//DHCP coarse timer
 #endif
 
 //Ethernet interrupt handler
-void lwip_pkt_handle(void)
-{
-  //Read received data packets from Ethernet interrupt and send to LWIP core 
- ethernetif_input(&lwip_netif);
-}
+
 
 //lwip core layer parameters
 //Allocate memory for lwip mem and memp

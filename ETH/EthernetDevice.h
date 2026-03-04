@@ -20,6 +20,7 @@
 #include <stdint.h>
 /***************************************************************************/
 #define Ethernet_taskPeriod  10
+#define LWIP_MAX_DHCP_TRIES  4  // Maximum DHCP retry attempts
 
 // Static IP configuration
 #define STATIC_IP_ADDR0   192
@@ -42,8 +43,9 @@ typedef enum {
     ETHERNET_DEV_INIT_STATE = 0,
     ETHERNET_CHECK_LINK_STATE,
     ETHERNET_DHCP_STATE,
-    ETHERNET_TCP_STATE,
-    ETHERNET_WORKING_STATE,
+    ETHERNET_WAIT_TCP_STATE,
+    ETHERNET_CONNECT_STATE,
+    ETHERNET_CLOSE_TCP_STATE,
     ETHERNET_DEV_FAILED_STATE,
 }EthDevice_State;
 
@@ -70,7 +72,7 @@ uint8_t EthernetDevice_BspInit(void);
 void EthernetDevice_InitStaticIP(void);
 void EthernetDevice_InitDHCP(void);
 void EthernetTCPProcess(void);
-
+void lwip_pkt_handle(void);
 
 
 

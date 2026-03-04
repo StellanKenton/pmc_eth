@@ -37,13 +37,45 @@
 #include "lan8720.h"
 /***************************************************************************/
 ETHERNET_DeviceTypeDef ethDevice;
+struct netif ethlwip_netif;  // Reference the global netif from lwip_comm.c
+extern __lwip_dev lwipdev;       // Reference the global lwipdev from lwip_comm.c
+extern u32 memp_get_memorysize(void);	
+extern u8_t *memp_memory;				
+extern u8_t *ram_heap;	
 
+u8 lwip_mem_malloc(void)
+{
+	u32 mempsize;
+	u32 ramheapsize; 
+	mempsize=memp_get_memorysize();					//Get memp_memory array size
+	memp_memory=mymalloc(SRAMIN,mempsize);	//Allocate memory for memp_memory
+	ramheapsize=LWIP_MEM_ALIGN_SIZE(MEM_SIZE)+2*LWIP_MEM_ALIGN_SIZE(4*3)+MEM_ALIGNMENT;//Get ram heap size
+	ram_heap=mymalloc(SRAMIN,ramheapsize);	//Allocate memory for ram_heap 
+	// TCPIP_THREAD_Task_Handler=mymalloc(SRAMIN,TCPIP_THREAD_STACKSIZE*4);//Allocate stack for core task 
+	// LWIP_DHCP_TASK_Handler=mymalloc(SRAMIN,LWIP_DHCP_STK_SIZE*4);				 //Allocate memory space for dhcp task stack
+	// if(!memp_memory||!ram_heap||!TCPIP_THREAD_Task_Handler||!TCPIP_THREAD_Task_Handler)//If any allocation fails
+	// {
+	// 	myfree(SRAMIN,memp_memory);
+    //     myfree(SRAMIN,ram_heap);
+    //     myfree(SRAMIN,TCPIP_THREAD_Task_Handler);
+    //     myfree(SRAMIN,LWIP_DHCP_TASK_Handler);
+	// 	return 1;
+	// }
+	return 0;	
+}
+
+void lwip_pkt_handle(void)
+{
+  //Read received data packets from Ethernet interrupt and send to LWIP core 
+ ethernetif_input(&ethlwip_netif);
+}
 
 uint8_t EthernetDevice_BspInit(void)
 {
     if(ETH_Mem_Malloc())return 0;
     SEGGER_RTT_printf(0, "Ethernet memory allocated successfully.\n");
     if(LAN8720_Init())return 0;
+    if(lwip_mem_malloc())return 0;
     SEGGER_RTT_printf(0, "LAN8720 initialized successfully.\n");
     return 1;
 }
@@ -151,7 +183,6 @@ void EthernetTCPProcess(void)
 {   
     sys_prot_t p;
     struct netif *Netif_Init_Flag;
-    struct netif lwip_netif;
     struct ip_addr ipaddr;  						//IP address
 	struct ip_addr netmask; 						//Subnet mask
 	struct ip_addr gw;      						//Default gateway 
@@ -168,6 +199,9 @@ void EthernetTCPProcess(void)
             if(ethDevice.ethLinkStatus){
                 if(ethDevice.dhcpEnabled){
                     EthernetDevice_InitDHCP();
+                    IP4_ADDR(&ipaddr, 0, 0, 0, 0);
+                    IP4_ADDR(&netmask, 0, 0, 0, 0);
+                    IP4_ADDR(&gw, 0, 0, 0, 0);
                     SEGGER_RTT_printf(0, "Ethernet link established, starting DHCP...\n");
                 } else {
                     EthernetDevice_InitStaticIP();
@@ -175,21 +209,34 @@ void EthernetTCPProcess(void)
                     IP4_ADDR(&netmask, ethDevice.NetInfo.MASK[0], ethDevice.NetInfo.MASK[1], ethDevice.NetInfo.MASK[2], ethDevice.NetInfo.MASK[3]);
                     IP4_ADDR(&gw, ethDevice.NetInfo.GW[0], ethDevice.NetInfo.GW[1], ethDevice.NetInfo.GW[2], ethDevice.NetInfo.GW[3]);
                 }
+                
+                // Set MAC address in ethlwip_netif
+                ethlwip_netif.hwaddr[0] = ethDevice.NetInfo.MAC[0];
+                ethlwip_netif.hwaddr[1] = ethDevice.NetInfo.MAC[1];
+                ethlwip_netif.hwaddr[2] = ethDevice.NetInfo.MAC[2];
+                ethlwip_netif.hwaddr[3] = ethDevice.NetInfo.MAC[3];
+                ethlwip_netif.hwaddr[4] = ethDevice.NetInfo.MAC[4];
+                ethlwip_netif.hwaddr[5] = ethDevice.NetInfo.MAC[5];
+                
+                SEGGER_RTT_printf(0, "MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", 
+                    ethlwip_netif.hwaddr[0], ethlwip_netif.hwaddr[1], ethlwip_netif.hwaddr[2],
+                    ethlwip_netif.hwaddr[3], ethlwip_netif.hwaddr[4], ethlwip_netif.hwaddr[5]);
+                
                 //Initialize tcp ip core, this function will create tcpip_thread core task
                 tcpip_init(NULL,NULL);		
                 p=sys_arch_protect();   //Enter critical section
-                Netif_Init_Flag=netif_add(&lwip_netif,&ipaddr,&netmask,&gw,NULL,&ethernetif_init,&tcpip_input);//Add a network interface to the network interface list
+                Netif_Init_Flag=netif_add(&ethlwip_netif,&ipaddr,&netmask,&gw,NULL,&ethernetif_init,&tcpip_input);//Add a network interface to the network interface list
                 sys_arch_unprotect(p);  //Exit critical section
                 if(Netif_Init_Flag==NULL){ //Network interface addition failed 
                     ethDevice.state = ETHERNET_DEV_INIT_STATE; // Reset to initial state to retry initialization
                     SEGGER_RTT_printf(0, "Failed to add network interface, retrying initialization...\n");
                     break;
                 } else {//Network interface added successfully, set netif as default and bring netif up
-                    netif_set_default(&lwip_netif); //Set netif as default network interface
-                    netif_set_up(&lwip_netif);		//Bring netif up
+                    netif_set_default(&ethlwip_netif); //Set netif as default network interface
+                    netif_set_up(&ethlwip_netif);		//Bring netif up
                 }
                 if(ethDevice.dhcpEnabled){
-                    dhcp_start(&lwip_netif);    //Start DHCP
+                    dhcp_start(&ethlwip_netif);    //Start DHCP
                     ethDevice.state = ETHERNET_DHCP_STATE;
                     SEGGER_RTT_printf(0, "DHCP started, waiting for IP address assignment...\n");
                 } else {
@@ -200,17 +247,64 @@ void EthernetTCPProcess(void)
             break;
         case ETHERNET_DHCP_STATE:
             // DHCP处理逻辑
-            u32ip=lwip_netif.ip_addr.addr;
-            u32netmask=lwip_netif.netmask.addr;
-            u32gw=lwip_netif.gw.addr;
-            if(u32ip != 0 && u32netmask != 0 && u32gw != 0){
+            u32ip=ethlwip_netif.ip_addr.addr;
+            u32netmask=ethlwip_netif.netmask.addr;
+            u32gw=ethlwip_netif.gw.addr;
+            if(u32ip != 0){  // 只要IP不为0就认为DHCP成功
+                // 填充DHCP获取的网络信息到ethDevice.NetInfo
+                ethDevice.NetInfo.IP[0] = (u32ip >> 0) & 0xFF;
+                ethDevice.NetInfo.IP[1] = (u32ip >> 8) & 0xFF;
+                ethDevice.NetInfo.IP[2] = (u32ip >> 16) & 0xFF;
+                ethDevice.NetInfo.IP[3] = (u32ip >> 24) & 0xFF;
+                
+                ethDevice.NetInfo.MASK[0] = (u32netmask >> 0) & 0xFF;
+                ethDevice.NetInfo.MASK[1] = (u32netmask >> 8) & 0xFF;
+                ethDevice.NetInfo.MASK[2] = (u32netmask >> 16) & 0xFF;
+                ethDevice.NetInfo.MASK[3] = (u32netmask >> 24) & 0xFF;
+                
+                ethDevice.NetInfo.GW[0] = (u32gw >> 0) & 0xFF;
+                ethDevice.NetInfo.GW[1] = (u32gw >> 8) & 0xFF;
+                ethDevice.NetInfo.GW[2] = (u32gw >> 16) & 0xFF;
+                ethDevice.NetInfo.GW[3] = (u32gw >> 24) & 0xFF;
+                
                 ethDevice.state = ETHERNET_TCP_STATE;
-                SEGGER_RTT_printf(0, "DHCP assigned IP: %d.%d.%d.%d\n", ip4_addr1(&lwip_netif.ip_addr), ip4_addr2(&lwip_netif.ip_addr), ip4_addr3(&lwip_netif.ip_addr), ip4_addr4(&lwip_netif.ip_addr));
+                SEGGER_RTT_printf(0, "DHCP successful!\n");
+                SEGGER_RTT_printf(0, "IP: %d.%d.%d.%d\n", 
+                    ethDevice.NetInfo.IP[0], ethDevice.NetInfo.IP[1], 
+                    ethDevice.NetInfo.IP[2], ethDevice.NetInfo.IP[3]);
+                SEGGER_RTT_printf(0, "MASK: %d.%d.%d.%d\n", 
+                    ethDevice.NetInfo.MASK[0], ethDevice.NetInfo.MASK[1], 
+                    ethDevice.NetInfo.MASK[2], ethDevice.NetInfo.MASK[3]);
+                SEGGER_RTT_printf(0, "GW: %d.%d.%d.%d\n", 
+                    ethDevice.NetInfo.GW[0], ethDevice.NetInfo.GW[1], 
+                    ethDevice.NetInfo.GW[2], ethDevice.NetInfo.GW[3]);
+            }
+            else if(ethlwip_netif.dhcp != NULL && ethlwip_netif.dhcp->tries > LWIP_MAX_DHCP_TRIES) 
+            {
+                // DHCP超时，使用静态IP
+                SEGGER_RTT_printf(0, "DHCP timeout, using static IP...\n");
+                dhcp_stop(&ethlwip_netif);
+                
+                // 设置静态IP
+                EthernetDevice_InitStaticIP();
+                IP4_ADDR(&(ethlwip_netif.ip_addr), ethDevice.NetInfo.IP[0], ethDevice.NetInfo.IP[1], 
+                         ethDevice.NetInfo.IP[2], ethDevice.NetInfo.IP[3]);
+                IP4_ADDR(&(ethlwip_netif.netmask), ethDevice.NetInfo.MASK[0], ethDevice.NetInfo.MASK[1], 
+                         ethDevice.NetInfo.MASK[2], ethDevice.NetInfo.MASK[3]);
+                IP4_ADDR(&(ethlwip_netif.gw), ethDevice.NetInfo.GW[0], ethDevice.NetInfo.GW[1], 
+                         ethDevice.NetInfo.GW[2], ethDevice.NetInfo.GW[3]);
+                
+                ethDevice.state = ETHERNET_TCP_STATE;
+                SEGGER_RTT_printf(0, "Static IP: %d.%d.%d.%d\n", 
+                    ethDevice.NetInfo.IP[0], ethDevice.NetInfo.IP[1], 
+                    ethDevice.NetInfo.IP[2], ethDevice.NetInfo.IP[3]);
             }
             break;
-        case ETHERNET_TCP_STATE:
-            // TCP处理逻辑
-            
+        case ETHERNET_WAIT_TCP_STATE:
+            break;
+        case ETHERNET_CONNECT_STATE:
+            break;
+        case ETHERNET_CLOSE_TCP_STATE:
             break;
         default:
             break;

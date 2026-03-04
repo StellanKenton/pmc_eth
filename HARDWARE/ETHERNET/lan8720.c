@@ -3,6 +3,7 @@
 #include "usart.h" 
 #include "delay.h"
 #include "malloc.h" 
+#include "EthernetDevice.h"
 
 ETH_DMADESCTypeDef *DMARxDscrTab;	//Ethernet DMA receive descriptor data structure pointer
 ETH_DMADESCTypeDef *DMATxDscrTab;	//Ethernet DMA transmit descriptor data structure pointer 
