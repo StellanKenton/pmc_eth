@@ -35,7 +35,12 @@
 #include "SEGGER_RTT.h"
 #include "EthernetDevice.h"
 #include "lan8720.h"
+#include "lwip/tcp.h"
+#include "lwrb.h"
 /***************************************************************************/
+static uint8_t EthernetRecvData[TCP_RX_BUFFER_SIZE]; // TCP接收缓冲区
+static lwrb_t tcpRxBuffer; // TCP接收环形缓冲区
+
 ETHERNET_DeviceTypeDef ethDevice;
 struct netif ethlwip_netif;  // Reference the global netif from lwip_comm.c
 extern __lwip_dev lwipdev;       // Reference the global lwipdev from lwip_comm.c
@@ -72,6 +77,8 @@ void lwip_pkt_handle(void)
 
 uint8_t EthernetDevice_BspInit(void)
 {
+    lwrb_init(&tcpRxBuffer, EthernetRecvData, TCP_RX_BUFFER_SIZE);
+
     if(ETH_Mem_Malloc())return 0;
     SEGGER_RTT_printf(0, "Ethernet memory allocated successfully.\n");
     if(LAN8720_Init())return 0;
@@ -177,6 +184,159 @@ void EthernetDevice_CheckLinkStatus(void)
         linkCheckCounter = 0;
         ethDevice.ethLinkStatus = LAN8720_Get_Link_Status();
     }
+}
+
+/**
+  * @brief  TCP接收回调函数
+  * @param  arg: 用户参数
+  * @param  tpcb: TCP控制块
+  * @param  p: pbuf数据包
+  * @param  err: 错误码
+  * @retval err_t
+  */
+static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+{
+    err_t ret_err;
+    
+    if (p == NULL) {
+        // 客户端关闭连接
+        SEGGER_RTT_printf(0, "Client closed connection\n");
+        tcp_close(tpcb);
+        ethDevice.tcp_client_pcb = NULL;
+        ethDevice.state = ETHERNET_CLOSE_TCP_STATE;
+        ret_err = ERR_OK;
+    }
+    else if(err != ERR_OK) {
+        // 接收错误
+        if (p != NULL) {
+            pbuf_free(p);
+        }
+        ret_err = err;
+    }
+    else {
+        // 接收到数据，更新活动时间
+        ethDevice.lastActivityTime = xTaskGetTickCount();
+        ethDevice.connectionActive = true;
+        
+        tcp_recved(tpcb, p->tot_len);
+        
+        SEGGER_RTT_printf(0, "Received %d bytes: %.*s\n", p->tot_len, p->tot_len, (char*)p->payload);
+        
+        // 将接收到的数据发送回去
+        if(tcp_write(tpcb, p->payload, p->tot_len, TCP_WRITE_FLAG_COPY) == ERR_OK) {
+            tcp_output(tpcb);
+        }
+        
+        pbuf_free(p);
+        ret_err = ERR_OK;
+    }
+    
+    return ret_err;
+}
+
+/**
+  * @brief  TCP错误回调函数
+  * @param  arg: 用户参数
+  * @param  err: 错误码
+  * @retval None
+  */
+static void tcp_server_error(void *arg, err_t err)
+{
+    SEGGER_RTT_printf(0, "TCP error: %d\n", err);
+    ethDevice.tcp_client_pcb = NULL;
+    ethDevice.state = ETHERNET_CLOSE_TCP_STATE;
+}
+
+/**
+  * @brief  TCP连接回调函数
+  * @param  arg: 用户参数
+  * @param  newpcb: 新的TCP控制块
+  * @param  err: 错误码
+  * @retval err_t
+  */
+static err_t tcp_server_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
+{
+    err_t ret_err;
+    
+    if ((err != ERR_OK) || (newpcb == NULL)) {
+        ret_err = ERR_VAL;
+        return ret_err;
+    }
+    
+    // 保存客户端连接
+    ethDevice.tcp_client_pcb = newpcb;
+    
+    // 保存远程IP地址
+    ethDevice.NetInfo.REMOTEIP[0] = ip4_addr1(&newpcb->remote_ip);
+    ethDevice.NetInfo.REMOTEIP[1] = ip4_addr2(&newpcb->remote_ip);
+    ethDevice.NetInfo.REMOTEIP[2] = ip4_addr3(&newpcb->remote_ip);
+    ethDevice.NetInfo.REMOTEIP[3] = ip4_addr4(&newpcb->remote_ip);
+    
+    SEGGER_RTT_printf(0, "Client connected from %d.%d.%d.%d:%d\n",
+        ip4_addr1(&newpcb->remote_ip),
+        ip4_addr2(&newpcb->remote_ip),
+        ip4_addr3(&newpcb->remote_ip),
+        ip4_addr4(&newpcb->remote_ip),
+        newpcb->remote_port);
+    
+    // 设置接收回调
+    tcp_recv(newpcb, tcp_server_recv);
+    
+    // 设置错误回调
+    tcp_err(newpcb, tcp_server_error);
+    
+    // 初始化连接相关计数器
+    ethDevice.lastActivityTime = xTaskGetTickCount();
+    ethDevice.connectionIdleTime = 0;
+    ethDevice.connectionActive = true;
+    
+    // 切换到连接状态
+    ethDevice.state = ETHERNET_CONNECT_STATE;
+    
+    ret_err = ERR_OK;
+    return ret_err;
+}
+
+/**
+  * @brief  初始化TCP服务器
+  * @retval 0: 失败, 1: 成功
+  */
+static uint8_t tcp_server_init(void)
+{
+    struct tcp_pcb *tpcb;
+    err_t err;
+    
+    // 创建TCP控制块
+    tpcb = tcp_new();
+    if (tpcb == NULL) {
+        SEGGER_RTT_printf(0, "Failed to create TCP PCB\n");
+        return 0;
+    }
+    
+    // 绑定端口
+    err = tcp_bind(tpcb, IP_ADDR_ANY, TCP_SERVER_PORT);
+    if (err != ERR_OK) {
+        SEGGER_RTT_printf(0, "Failed to bind TCP port %d\n", TCP_SERVER_PORT);
+        tcp_close(tpcb);
+        return 0;
+    }
+    
+    // 开始监听
+    tpcb = tcp_listen(tpcb);
+    if (tpcb == NULL) {
+        SEGGER_RTT_printf(0, "Failed to listen on TCP port %d\n", TCP_SERVER_PORT);
+        return 0;
+    }
+    
+    // 设置接受连接回调
+    tcp_accept(tpcb, tcp_server_accept);
+    
+    // 保存TCP控制块
+    ethDevice.tcp_pcb = tpcb;
+    
+    SEGGER_RTT_printf(0, "TCP server started on port %d\n", TCP_SERVER_PORT);
+    
+    return 1;
 }
 
 void EthernetTCPProcess(void)
@@ -300,11 +460,41 @@ void EthernetTCPProcess(void)
                     ethDevice.NetInfo.IP[2], ethDevice.NetInfo.IP[3]);
             }
             break;
+        case ETHERNET_TCP_STATE:
+            // 初始化TCP服务器
+            if(tcp_server_init()) {
+                ethDevice.state = ETHERNET_WAIT_TCP_STATE;
+                SEGGER_RTT_printf(0, "Waiting for TCP client connection...\n");
+            } else {
+                SEGGER_RTT_printf(0, "Failed to initialize TCP server, retrying...\n");
+                vTaskDelay(1000 / portTICK_PERIOD_MS); // 延迟1秒后重试
+            }
+            break;
         case ETHERNET_WAIT_TCP_STATE:
+            // 等待TCP客户端连接
+            // 此状态下TCP服务器已启动，等待客户端连接
+            // 连接建立后会通过tcp_server_accept回调自动切换到ETHERNET_CONNECT_STATE
             break;
         case ETHERNET_CONNECT_STATE:
+            // TCP连接已建立，处理数据收发
+            // 数据接收和发送在tcp_server_recv回调中处理
+            // 如果连接断开，会自动切换到ETHERNET_CLOSE_TCP_STATE
+            if(ethDevice.tcp_client_pcb == NULL) {
+                // 连接已断开，返回等待连接状态
+                ethDevice.state = ETHERNET_WAIT_TCP_STATE;
+                SEGGER_RTT_printf(0, "Connection lost, waiting for new connection...\n");
+            }
             break;
         case ETHERNET_CLOSE_TCP_STATE:
+            // 关闭TCP连接
+            if(ethDevice.tcp_client_pcb != NULL) {
+                struct tcp_pcb *tpcb = (struct tcp_pcb *)ethDevice.tcp_client_pcb;
+                tcp_close(tpcb);
+                ethDevice.tcp_client_pcb = NULL;
+                SEGGER_RTT_printf(0, "TCP connection closed\n");
+            }
+            // 返回等待连接状态
+            ethDevice.state = ETHERNET_WAIT_TCP_STATE;
             break;
         default:
             break;

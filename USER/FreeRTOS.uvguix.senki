@@ -3606,9 +3606,9 @@
       <ActiveTab>0</ActiveTab>
       <Doc>
         <Name>..\ETH\EthernetDevice.c</Name>
-        <ColumnNumber>0</ColumnNumber>
-        <TopLine>52</TopLine>
-        <CurrentLine>66</CurrentLine>
+        <ColumnNumber>15</ColumnNumber>
+        <TopLine>242</TopLine>
+        <CurrentLine>265</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>
