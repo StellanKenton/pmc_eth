@@ -14,6 +14,7 @@
 */
 #include "Iot_Ethernet.h"
 #include "EthernetDevice.h"
+#include "SEGGER_RTT.h"
 /***************************************************************************/
 ETHERNET_ModuleTypeDef g_EthernetModuleInfo;
 
@@ -32,10 +33,12 @@ void Ethernet_HardWareProcess(void)
     switch(g_EthernetModuleInfo.state)
     {
         case ETHERNET_INIT_STATE:
-            if(EthernetDevice_BspInit() == 0){
+            if(EthernetDevice_BspInit() == 1){
                 g_EthernetModuleInfo.state = ETHERNET_READY_STATE;
+                SEGGER_RTT_printf(0, "Ethernet hardware initialized successfully.\n");
             } else {
                 g_EthernetModuleInfo.state = ETHERNET_FAILED_STATE;
+                SEGGER_RTT_printf(0, "Ethernet hardware initialization failed.\n");
             }
             break;
         case ETHERNET_READY_STATE:

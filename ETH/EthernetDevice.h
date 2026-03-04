@@ -69,7 +69,7 @@ void EthernetDevice_Init(void);
 uint8_t EthernetDevice_BspInit(void);
 void EthernetDevice_InitStaticIP(void);
 void EthernetDevice_InitDHCP(void);
-
+void EthernetTCPProcess(void);
 
 
 

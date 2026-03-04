@@ -32,6 +32,7 @@
 #include "led.h"
 #include "netif/ethernetif.h" 
 
+#include "SEGGER_RTT.h"
 #include "EthernetDevice.h"
 #include "lan8720.h"
 /***************************************************************************/
@@ -41,7 +42,9 @@ ETHERNET_DeviceTypeDef ethDevice;
 uint8_t EthernetDevice_BspInit(void)
 {
     if(ETH_Mem_Malloc())return 0;
+    SEGGER_RTT_printf(0, "Ethernet memory allocated successfully.\n");
     if(LAN8720_Init())return 0;
+    SEGGER_RTT_printf(0, "LAN8720 initialized successfully.\n");
     return 1;
 }
 
@@ -165,6 +168,7 @@ void EthernetTCPProcess(void)
             if(ethDevice.ethLinkStatus){
                 if(ethDevice.dhcpEnabled){
                     EthernetDevice_InitDHCP();
+                    SEGGER_RTT_printf(0, "Ethernet link established, starting DHCP...\n");
                 } else {
                     EthernetDevice_InitStaticIP();
                     IP4_ADDR(&ipaddr, ethDevice.NetInfo.IP[0], ethDevice.NetInfo.IP[1], ethDevice.NetInfo.IP[2], ethDevice.NetInfo.IP[3]);
@@ -178,6 +182,7 @@ void EthernetTCPProcess(void)
                 sys_arch_unprotect(p);  //Exit critical section
                 if(Netif_Init_Flag==NULL){ //Network interface addition failed 
                     ethDevice.state = ETHERNET_DEV_INIT_STATE; // Reset to initial state to retry initialization
+                    SEGGER_RTT_printf(0, "Failed to add network interface, retrying initialization...\n");
                     break;
                 } else {//Network interface added successfully, set netif as default and bring netif up
                     netif_set_default(&lwip_netif); //Set netif as default network interface
@@ -186,8 +191,10 @@ void EthernetTCPProcess(void)
                 if(ethDevice.dhcpEnabled){
                     dhcp_start(&lwip_netif);    //Start DHCP
                     ethDevice.state = ETHERNET_DHCP_STATE;
+                    SEGGER_RTT_printf(0, "DHCP started, waiting for IP address assignment...\n");
                 } else {
                     ethDevice.state = ETHERNET_TCP_STATE;
+                    SEGGER_RTT_printf(0, "Static IP configured, entering TCP processing state...\n");
                 }
             }
             break;
@@ -198,6 +205,7 @@ void EthernetTCPProcess(void)
             u32gw=lwip_netif.gw.addr;
             if(u32ip != 0 && u32netmask != 0 && u32gw != 0){
                 ethDevice.state = ETHERNET_TCP_STATE;
+                SEGGER_RTT_printf(0, "DHCP assigned IP: %d.%d.%d.%d\n", ip4_addr1(&lwip_netif.ip_addr), ip4_addr2(&lwip_netif.ip_addr), ip4_addr3(&lwip_netif.ip_addr), ip4_addr4(&lwip_netif.ip_addr));
             }
             break;
         case ETHERNET_TCP_STATE:

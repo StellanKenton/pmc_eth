@@ -170,6 +170,7 @@ u8 ETH_MACDMA_Config(void)
 	ETH_InitStructure.ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;     		//DMA transmit maximum burst length is 32 beats   
 	ETH_InitStructure.ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;			//DMA receive maximum burst length is 32 beats
 	ETH_InitStructure.ETH_DMAArbitration = ETH_DMAArbitration_RoundRobin_RxTx_2_1;
+    
 	rval=ETH_Init(&ETH_InitStructure,LAN8720_PHY_ADDRESS);		//Configure ETH
 	if(rval==ETH_SUCCESS)//Configuration successful
 	{
