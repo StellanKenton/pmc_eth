@@ -46,7 +46,10 @@ struct netif ethlwip_netif;  // Reference the global netif from lwip_comm.c
 extern __lwip_dev lwipdev;       // Reference the global lwipdev from lwip_comm.c
 extern u32 memp_get_memorysize(void);	
 extern u8_t *memp_memory;				
-extern u8_t *ram_heap;	
+extern u8_t *ram_heap;
+
+// 标志：tcpip_init是否已经调用过
+static uint8_t tcpip_initialized = 0;	
 
 u8 lwip_mem_malloc(void)
 {
@@ -56,17 +59,24 @@ u8 lwip_mem_malloc(void)
 	memp_memory=mymalloc(SRAMIN,mempsize);	//Allocate memory for memp_memory
 	ramheapsize=LWIP_MEM_ALIGN_SIZE(MEM_SIZE)+2*LWIP_MEM_ALIGN_SIZE(4*3)+MEM_ALIGNMENT;//Get ram heap size
 	ram_heap=mymalloc(SRAMIN,ramheapsize);	//Allocate memory for ram_heap 
-	// TCPIP_THREAD_Task_Handler=mymalloc(SRAMIN,TCPIP_THREAD_STACKSIZE*4);//Allocate stack for core task 
-	// LWIP_DHCP_TASK_Handler=mymalloc(SRAMIN,LWIP_DHCP_STK_SIZE*4);				 //Allocate memory space for dhcp task stack
-	// if(!memp_memory||!ram_heap||!TCPIP_THREAD_Task_Handler||!TCPIP_THREAD_Task_Handler)//If any allocation fails
-	// {
-	// 	myfree(SRAMIN,memp_memory);
-    //     myfree(SRAMIN,ram_heap);
-    //     myfree(SRAMIN,TCPIP_THREAD_Task_Handler);
-    //     myfree(SRAMIN,LWIP_DHCP_TASK_Handler);
-	// 	return 1;
-	// }
+	
+	if(!memp_memory || !ram_heap) {
+		lwip_mem_free();
+		return 1;
+	}
 	return 0;	
+}
+
+void lwip_mem_free(void)
+{
+	if(memp_memory) {
+		myfree(SRAMIN, memp_memory);
+		memp_memory = NULL;
+	}
+	if(ram_heap) {
+		myfree(SRAMIN, ram_heap);
+		ram_heap = NULL;
+	}
 }
 
 void lwip_pkt_handle(void)
@@ -75,14 +85,83 @@ void lwip_pkt_handle(void)
  ethernetif_input(&ethlwip_netif);
 }
 
+/**
+  * @brief  清理所有网络资源
+  * @retval None
+  */
+static void EthernetDevice_CleanupResources(void)
+{
+    SEGGER_RTT_printf(0, "Cleaning up network resources...\n");
+    
+    // 1. 停止DHCP（如果正在运行）
+    if(ethlwip_netif.dhcp != NULL) {
+        dhcp_stop(&ethlwip_netif);
+        SEGGER_RTT_printf(0, "DHCP stopped\n");
+    }
+    
+    // 2. 关闭TCP连接
+    if(ethDevice.tcp_client_pcb != NULL) {
+        tcp_abort((struct tcp_pcb *)ethDevice.tcp_client_pcb);
+        ethDevice.tcp_client_pcb = NULL;
+        SEGGER_RTT_printf(0, "TCP client connection aborted\n");
+    }
+    
+    // 3. 关闭TCP服务器
+    if(ethDevice.tcp_pcb != NULL) {
+        tcp_close((struct tcp_pcb *)ethDevice.tcp_pcb);
+        ethDevice.tcp_pcb = NULL;
+        SEGGER_RTT_printf(0, "TCP server closed\n");
+    }
+    
+    // 4. 移除网络接口（但不删除，只是down）
+    if(netif_is_up(&ethlwip_netif)) {
+        netif_set_down(&ethlwip_netif);
+        netif_remove(&ethlwip_netif);
+        SEGGER_RTT_printf(0, "Network interface removed\n");
+    }
+    
+    // 注意：不释放LwIP内存和DMA内存，因为TCP/IP核心任务还在运行
+    // 只有在完全重启时才需要释放这些资源
+    
+    // 5. 清空环形缓冲区
+    lwrb_reset(&tcpRxBuffer);
+    
+    // 6. 重置设备状态标志
+    ethDevice.client_connected_flag = false;
+    ethDevice.client_closed_flag = false;
+    ethDevice.connectionActive = false;
+    
+    SEGGER_RTT_printf(0, "Resource cleanup completed\n");
+}
+
 uint8_t EthernetDevice_BspInit(void)
 {
-    lwrb_init(&tcpRxBuffer, EthernetRecvData, TCP_RX_BUFFER_SIZE);
+    static uint8_t first_init = 1;
+    
+    // 环形缓冲区只初始化一次
+    if(first_init) {
+        lwrb_init(&tcpRxBuffer, EthernetRecvData, TCP_RX_BUFFER_SIZE);
+        first_init = 0;
+    }
 
-    if(ETH_Mem_Malloc())return 0;
-    SEGGER_RTT_printf(0, "Ethernet memory allocated successfully.\n");
+    // 以太网DMA内存：如果已分配则跳过
+    if(DMATxDscrTab == NULL || DMARxDscrTab == NULL) {
+        if(ETH_Mem_Malloc())return 0;
+        SEGGER_RTT_printf(0, "Ethernet memory allocated successfully.\n");
+    } else {
+        SEGGER_RTT_printf(0, "Ethernet memory already allocated, skipping...\n");
+    }
+    
     if(LAN8720_Init())return 0;
-    if(lwip_mem_malloc())return 0;
+    
+    // LwIP内存：如果已分配则跳过
+    if(memp_memory == NULL || ram_heap == NULL) {
+        if(lwip_mem_malloc())return 0;
+        SEGGER_RTT_printf(0, "LwIP memory allocated successfully.\n");
+    } else {
+        SEGGER_RTT_printf(0, "LwIP memory already allocated, skipping...\n");
+    }
+    
     SEGGER_RTT_printf(0, "LAN8720 initialized successfully.\n");
     return 1;
 }
@@ -176,13 +255,37 @@ void EthernetDevice_InitDHCP(void)
 void EthernetDevice_CheckLinkStatus(void)
 {
     static uint8_t linkCheckCounter = 0;
+    static uint8_t previousLinkStatus = 0;
     
     // Check link status every 100ms (100ms / 10ms = 10 times)
     linkCheckCounter++;
     if(linkCheckCounter >= 10)
     {
         linkCheckCounter = 0;
-        ethDevice.ethLinkStatus = LAN8720_Get_Link_Status();
+        uint8_t currentLinkStatus = LAN8720_Get_Link_Status();
+        
+        // 检测链路状态变化：从UP变为DOWN
+        if(previousLinkStatus == 1 && currentLinkStatus == 0)
+        {
+            SEGGER_RTT_printf(0, "⚠️ Link DOWN detected! Cleaning up and resetting...\n");
+            
+            // 清理所有资源
+            EthernetDevice_CleanupResources();
+            
+            // 延迟一段时间
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            
+            // 返回初始状态
+            ethDevice.state = ETHERNET_DEV_INIT_STATE;
+        }
+        // 检测链路恢复：从DOWN变为UP
+        else if(previousLinkStatus == 0 && currentLinkStatus == 1)
+        {
+            SEGGER_RTT_printf(0, "✅ Link UP detected!\n");
+        }
+        
+        previousLinkStatus = currentLinkStatus;
+        ethDevice.ethLinkStatus = currentLinkStatus;
     }
 }
 
@@ -201,9 +304,7 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
     if (p == NULL) {
         // 客户端关闭连接
         SEGGER_RTT_printf(0, "Client closed connection\n");
-        tcp_close(tpcb);
-        ethDevice.tcp_client_pcb = NULL;
-        ethDevice.state = ETHERNET_CLOSE_TCP_STATE;
+        ethDevice.client_closed_flag = true;
         ret_err = ERR_OK;
     }
     else if(err != ERR_OK) {
@@ -222,9 +323,10 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
         
         SEGGER_RTT_printf(0, "Received %d bytes: %.*s\n", p->tot_len, p->tot_len, (char*)p->payload);
         
-        // 将接收到的数据发送回去
-        if(tcp_write(tpcb, p->payload, p->tot_len, TCP_WRITE_FLAG_COPY) == ERR_OK) {
-            tcp_output(tpcb);
+        // 将接收到的数据存入环形缓冲区
+        struct pbuf *q;
+        for(q = p; q != NULL; q = q->next) {
+            lwrb_write(&tcpRxBuffer, q->payload, q->len);
         }
         
         pbuf_free(p);
@@ -243,8 +345,9 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
 static void tcp_server_error(void *arg, err_t err)
 {
     SEGGER_RTT_printf(0, "TCP error: %d\n", err);
+    ethDevice.client_closed_flag = true;
     ethDevice.tcp_client_pcb = NULL;
-    ethDevice.state = ETHERNET_CLOSE_TCP_STATE;
+    // Don't set state directly
 }
 
 /**
@@ -289,9 +392,10 @@ static err_t tcp_server_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
     ethDevice.lastActivityTime = xTaskGetTickCount();
     ethDevice.connectionIdleTime = 0;
     ethDevice.connectionActive = true;
+    ethDevice.client_connected_flag = true;
     
-    // 切换到连接状态
-    ethDevice.state = ETHERNET_CONNECT_STATE;
+    // 切换到连接状态 - Moved to state machine
+    // ethDevice.state = ETHERNET_CONNECT_STATE;
     
     ret_err = ERR_OK;
     return ret_err;
@@ -348,12 +452,19 @@ void EthernetTCPProcess(void)
 	struct ip_addr gw;      						//Default gateway 
     u32 u32ip=0,u32netmask=0,u32gw=0;
 
-    EthernetDevice_CheckLinkStatus();
+    // 在所有状态下都检查链路状态（除了INIT状态）
+    if(ethDevice.state != ETHERNET_DEV_INIT_STATE)
+    {
+        EthernetDevice_CheckLinkStatus();
+    }
+    
     switch(ethDevice.state)
     {
         case ETHERNET_DEV_INIT_STATE:
-            ethDevice.state = ETHERNET_CHECK_LINK_STATE;
-            ethDevice.dhcpEnabled = true; // Default enable DHCP
+            if(EthernetDevice_BspInit() == 1){
+                ethDevice.state = ETHERNET_CHECK_LINK_STATE;
+                ethDevice.dhcpEnabled = true; // Default enable DHCP
+            }
             break;
         case ETHERNET_CHECK_LINK_STATE:
             if(ethDevice.ethLinkStatus){
@@ -382,8 +493,15 @@ void EthernetTCPProcess(void)
                     ethlwip_netif.hwaddr[0], ethlwip_netif.hwaddr[1], ethlwip_netif.hwaddr[2],
                     ethlwip_netif.hwaddr[3], ethlwip_netif.hwaddr[4], ethlwip_netif.hwaddr[5]);
                 
-                //Initialize tcp ip core, this function will create tcpip_thread core task
-                tcpip_init(NULL,NULL);		
+                // Initialize tcp ip core only once (this function will create tcpip_thread core task)
+                if(tcpip_initialized == 0) {
+                    tcpip_init(NULL, NULL);
+                    tcpip_initialized = 1;
+                    SEGGER_RTT_printf(0, "TCP/IP stack initialized\n");
+                } else {
+                    SEGGER_RTT_printf(0, "TCP/IP stack already initialized, skipping...\n");
+                }
+                
                 p=sys_arch_protect();   //Enter critical section
                 Netif_Init_Flag=netif_add(&ethlwip_netif,&ipaddr,&netmask,&gw,NULL,&ethernetif_init,&tcpip_input);//Add a network interface to the network interface list
                 sys_arch_unprotect(p);  //Exit critical section
@@ -439,25 +557,20 @@ void EthernetTCPProcess(void)
                     ethDevice.NetInfo.GW[0], ethDevice.NetInfo.GW[1], 
                     ethDevice.NetInfo.GW[2], ethDevice.NetInfo.GW[3]);
             }
-            else if(ethlwip_netif.dhcp != NULL && ethlwip_netif.dhcp->tries > LWIP_MAX_DHCP_TRIES) 
+            else if(ethlwip_netif.dhcp != NULL && ethlwip_netif.dhcp->tries > 2) 
             {
-                // DHCP超时，使用静态IP
-                SEGGER_RTT_printf(0, "DHCP timeout, using static IP...\n");
-                dhcp_stop(&ethlwip_netif);
+                // DHCP超时失败，清理所有资源
+                SEGGER_RTT_printf(0, "DHCP failed after %d tries, cleaning up resources...\n", LWIP_MAX_DHCP_TRIES);
                 
-                // 设置静态IP
-                EthernetDevice_InitStaticIP();
-                IP4_ADDR(&(ethlwip_netif.ip_addr), ethDevice.NetInfo.IP[0], ethDevice.NetInfo.IP[1], 
-                         ethDevice.NetInfo.IP[2], ethDevice.NetInfo.IP[3]);
-                IP4_ADDR(&(ethlwip_netif.netmask), ethDevice.NetInfo.MASK[0], ethDevice.NetInfo.MASK[1], 
-                         ethDevice.NetInfo.MASK[2], ethDevice.NetInfo.MASK[3]);
-                IP4_ADDR(&(ethlwip_netif.gw), ethDevice.NetInfo.GW[0], ethDevice.NetInfo.GW[1], 
-                         ethDevice.NetInfo.GW[2], ethDevice.NetInfo.GW[3]);
+                // 清理所有已分配的资源
+                EthernetDevice_CleanupResources();
                 
-                ethDevice.state = ETHERNET_TCP_STATE;
-                SEGGER_RTT_printf(0, "Static IP: %d.%d.%d.%d\n", 
-                    ethDevice.NetInfo.IP[0], ethDevice.NetInfo.IP[1], 
-                    ethDevice.NetInfo.IP[2], ethDevice.NetInfo.IP[3]);
+                // 延迟一段时间后重新初始化
+                vTaskDelay(2000 / portTICK_PERIOD_MS);
+                
+                // 返回初始状态重新开始
+                ethDevice.state = ETHERNET_DEV_INIT_STATE;
+                SEGGER_RTT_printf(0, "Returning to INIT state for retry...\n");
             }
             break;
         case ETHERNET_TCP_STATE:
@@ -471,18 +584,29 @@ void EthernetTCPProcess(void)
             }
             break;
         case ETHERNET_WAIT_TCP_STATE:
-            // 等待TCP客户端连接
-            // 此状态下TCP服务器已启动，等待客户端连接
-            // 连接建立后会通过tcp_server_accept回调自动切换到ETHERNET_CONNECT_STATE
+            if (ethDevice.client_connected_flag) {
+                ethDevice.client_connected_flag = false;
+                ethDevice.client_closed_flag = false;
+                ethDevice.state = ETHERNET_CONNECT_STATE;
+                SEGGER_RTT_printf(0, "Client connected, entering processing state...\n");
+            }
             break;
         case ETHERNET_CONNECT_STATE:
-            // TCP连接已建立，处理数据收发
-            // 数据接收和发送在tcp_server_recv回调中处理
-            // 如果连接断开，会自动切换到ETHERNET_CLOSE_TCP_STATE
-            if(ethDevice.tcp_client_pcb == NULL) {
-                // 连接已断开，返回等待连接状态
-                ethDevice.state = ETHERNET_WAIT_TCP_STATE;
-                SEGGER_RTT_printf(0, "Connection lost, waiting for new connection...\n");
+            if (ethDevice.client_closed_flag) {
+                ethDevice.state = ETHERNET_CLOSE_TCP_STATE;
+            } else {
+                // 检查环形缓冲区是否有数据
+                if (lwrb_get_full(&tcpRxBuffer) > 0) {
+                    uint8_t buffer[1024]; 
+                    size_t len = lwrb_read(&tcpRxBuffer, buffer, sizeof(buffer));
+                    
+                    if (len > 0 && ethDevice.tcp_client_pcb != NULL) {
+                        // 回显数据
+                        if(tcp_write((struct tcp_pcb *)ethDevice.tcp_client_pcb, buffer, len, TCP_WRITE_FLAG_COPY) == ERR_OK) {
+                            tcp_output((struct tcp_pcb *)ethDevice.tcp_client_pcb);
+                        }
+                    }
+                }
             }
             break;
         case ETHERNET_CLOSE_TCP_STATE:
@@ -493,6 +617,8 @@ void EthernetTCPProcess(void)
                 ethDevice.tcp_client_pcb = NULL;
                 SEGGER_RTT_printf(0, "TCP connection closed\n");
             }
+            ethDevice.client_connected_flag = false;
+            ethDevice.client_closed_flag = false;
             // 返回等待连接状态
             ethDevice.state = ETHERNET_WAIT_TCP_STATE;
             break;

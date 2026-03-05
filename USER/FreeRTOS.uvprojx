@@ -844,6 +844,11 @@
               <FileType>1</FileType>
               <FilePath>..\ETH\Iot_Ethernet.c</FilePath>
             </File>
+            <File>
+              <FileName>lwrb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ETH\lwrb.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

@@ -20,7 +20,7 @@
 #include <stdint.h>
 /***************************************************************************/
 #define Ethernet_taskPeriod  10
-#define LWIP_MAX_DHCP_TRIES  4  // Maximum DHCP retry attempts
+#define LWIP_MAX_DHCP_TRIES  10  // Maximum DHCP retry attempts (increased for better reliability)
 
 // TCP连接超时配置
 #define TCP_WAIT_CONNECT_TIMEOUT    300000  // 等待连接超时时间(ms) - 5分钟
@@ -80,6 +80,8 @@ typedef struct {
     uint32_t connectionIdleTime;    // 连接空闲时间计数器
     uint32_t lastActivityTime;      // 最后活动时间
     bool connectionActive;          // 连接活跃标志
+    volatile bool client_connected_flag;
+    volatile bool client_closed_flag;
 }ETHERNET_DeviceTypeDef;
 
 
@@ -89,6 +91,7 @@ void EthernetDevice_InitStaticIP(void);
 void EthernetDevice_InitDHCP(void);
 void EthernetTCPProcess(void);
 void lwip_pkt_handle(void);
+void lwip_mem_free(void);
 
 
 
